@@ -26,7 +26,12 @@ import { draco, textureCompress, prune, resample } from '@gltf-transform/functio
 const SRC = 'assets/models';
 const OUT = 'public/models';
 /** Longest texture edge per model: the bar is a backdrop seen from one seat. */
-const TEXTURE_SIZE = { 'old-bar.glb': 1024, 'slot-machine.glb': 2048 };
+const TEXTURE_SIZE = {
+  'old-bar.glb': 1024, 'slot-machine.glb': 2048,
+  // the coder's room (tools/fetch-polyhaven.mjs): props near the camera at 1024, the shelf and the clock at 512
+  'ph-desk-lamp.glb': 1024, 'ph-plant-tall.glb': 1024, 'ph-plant-small.glb': 1024,
+  'ph-shelf.glb': 512, 'ph-books.glb': 512, 'ph-wall-clock.glb': 512,
+};
 
 const io = new NodeIO()
   .registerExtensions(ALL_EXTENSIONS)
