@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <title>A fruit fly in a gaming chair with a headset on, a creeper on its curved monitor, a vertical chat screen and an RGB PC beside it</title>
+  <defs>
+    <g id="fly">
+      <ellipse cx="-16" cy="-52" rx="11" ry="34" transform="rotate(-18 -16 -52)" fill="#fff" fill-opacity="0.3" stroke="#c98a4c" stroke-width="1.2"/>
+      <path d="M-4 -30 L-14 0 M2 -30 L6 2" stroke="#b25d1a" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <ellipse cx="-2" cy="-22" rx="16" ry="24" fill="#d9731f"/>
+      <path d="M-16 -26 Q-2 -22 13 -28 M-17 -16 Q-2 -12 14 -18 M-15 -6 Q-2 -3 12 -8" stroke="#a9541a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="4" cy="-56" rx="15" ry="14" fill="#e3872f"/>
+      <circle cx="17" cy="-76" r="11" fill="#e3872f"/>
+      <circle cx="22" cy="-78" r="6.5" fill="#b8321f"/>
+      <path d="M22 -86 l6 -8" stroke="#b25d1a" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="-6" cy="-60" rx="9" ry="26" transform="rotate(-22 -6 -60)" fill="#fff" fill-opacity="0.4" stroke="#c98a4c" stroke-width="1.2"/>
+    </g>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#6fbf45" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#6fbf45" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="neon" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#b84dff" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#b84dff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="rgb" x1="0" x2="1">
+      <stop offset="0" stop-color="#ff3d6e"/>
+      <stop offset="0.33" stop-color="#ffd24a"/>
+      <stop offset="0.66" stop-color="#3dffa8"/>
+      <stop offset="1" stop-color="#4d7bff"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="260" fill="#12101a"/>
+  <ellipse cx="300" cy="40" rx="120" ry="70" fill="url(#neon)"/>
+  <!-- hexagon light panels -->
+  <g opacity="0.85">
+    <path d="M292 18 l9 -5 l9 5 v10 l-9 5 l-9 -5 z" fill="#ff4fb0"/>
+    <path d="M311 18 l9 -5 l9 5 v10 l-9 5 l-9 -5 z" fill="#b84dff"/>
+    <path d="M301.5 34 l9 -5 l9 5 v10 l-9 5 l-9 -5 z" fill="#4d7bff"/>
+  </g>
+  <ellipse cx="238" cy="112" rx="110" ry="80" fill="url(#glow)"/>
+  <!-- the curved monitor, a creeper on it -->
+  <path d="M168 58 Q238 50 308 58 L308 140 Q238 132 168 140 Z" fill="#0b0b0e"/>
+  <path d="M172 62 Q238 55 304 62 L304 136 Q238 129 172 136 Z" fill="#0f1a3a"/>
+  <path d="M172 112 Q238 106 304 112 L304 136 Q238 129 172 136 Z" fill="#4a8a34"/>
+  <g fill="#5dbb46">
+    <rect x="222" y="72" width="30" height="30"/>
+    <rect x="227" y="102" width="20" height="26"/>
+  </g>
+  <g fill="#111">
+    <rect x="226" y="78" width="8" height="8"/>
+    <rect x="240" y="78" width="8" height="8"/>
+    <rect x="233" y="86" width="8" height="6"/>
+    <rect x="229" y="90" width="5" height="8"/>
+    <rect x="240" y="90" width="5" height="8"/>
+  </g>
+  <rect x="254" y="126" width="36" height="6" fill="#2a2a2a" opacity="0.8"/>
+  <rect x="233" y="140" width="10" height="12" fill="#1a1a20"/>
+  <!-- the vertical monitor: the team chat -->
+  <rect x="316" y="46" width="44" height="80" rx="3" fill="#0b0b0e"/>
+  <rect x="319" y="49" width="38" height="74" rx="2" fill="#313338"/>
+  <circle cx="325" cy="58" r="3" fill="#d9731f"/>
+  <circle cx="325" cy="67" r="3" fill="#8a6fd8"/>
+  <circle cx="325" cy="76" r="3" fill="#e0b040" stroke="#23a55a" stroke-width="1.5"/>
+  <rect x="331" y="56" width="20" height="3" fill="#b5bac1"/>
+  <rect x="331" y="65" width="16" height="3" fill="#b5bac1"/>
+  <rect x="331" y="74" width="18" height="3" fill="#b5bac1"/>
+  <rect x="323" y="92" width="30" height="3" fill="#ff8a7a"/>
+  <rect x="323" y="99" width="24" height="3" fill="#ff8a7a"/>
+  <!-- the desk, with its strip -->
+  <rect x="140" y="152" width="260" height="8" fill="#1d1b24"/>
+  <rect x="140" y="160" width="260" height="2" fill="url(#rgb)"/>
+  <rect x="190" y="146" width="62" height="6" rx="1" fill="url(#rgb)" opacity="0.9"/>
+  <rect x="262" y="146" width="12" height="6" rx="3" fill="#16161c"/>
+  <!-- the PC, glowing -->
+  <rect x="352" y="96" width="42" height="56" rx="2" fill="#1e1c28" stroke="#3a3748" stroke-width="1.5"/>
+  <circle cx="373" cy="110" r="7" fill="none" stroke="#ff3d6e" stroke-width="2"/>
+  <circle cx="373" cy="127" r="7" fill="none" stroke="#ffd24a" stroke-width="2"/>
+  <circle cx="373" cy="144" r="5" fill="none" stroke="#3dffa8" stroke-width="2"/>
+  <!-- the chair -->
+  <rect x="50" y="100" width="26" height="102" rx="9" fill="#2c2a36"/>
+  <rect x="53" y="108" width="6" height="86" rx="3" fill="#de7a22"/>
+  <rect x="67" y="108" width="6" height="86" rx="3" fill="#de7a22"/>
+  <rect x="56" y="196" width="84" height="13" rx="5" fill="#2c2a36"/>
+  <rect x="60" y="196" width="76" height="4" rx="2" fill="#de7a22"/>
+  <rect x="94" y="209" width="6" height="35" fill="#8a8a92"/>
+  <path d="M68 250 L126 250 M97 244 L97 252" stroke="#2c2a36" stroke-width="5" stroke-linecap="round"/>
+  <!-- the fly, with its headset -->
+  <use href="#fly" x="98" y="196"/>
+  <path d="M104 112 Q116 96 130 110" stroke="#17171c" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <circle cx="108" cy="122" r="7" fill="#17171c"/>
+  <circle cx="108" cy="122" r="4.5" fill="none" stroke="#3dffa8" stroke-width="1.5"/>
+  <path d="M110 128 Q118 138 128 132" stroke="#17171c" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- its foreleg on the mouse -->
+  <path d="M118 148 Q190 128 262 146" stroke="#b25d1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

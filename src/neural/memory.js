@@ -53,10 +53,16 @@ export class MushroomBodyMemory {
    * @param P     population index lists from cnsGraph.js
    * @param names type names, for the panel
    * @param rest  per-type resting rates of the settled network
+   * @param opts  `sparse`: when set, a Kenyon cell counts only by how far it
+   *              fires above its resting rate, times this gain. Real Kenyon
+   *              cells are sparse and nearly silent; in the rate model they
+   *              idle at a floor, and a page that gives each context its own
+   *              Kenyon cells (the gaming setup) needs that floor not to learn.
    */
-  constructor(sim, raw, P, names, rest) {
+  constructor(sim, raw, P, names, rest, { sparse = 0 } = {}) {
     this.sim = sim;
     this.rest = rest;
+    this.sparse = sparse;
     const KC = new Set(P.mushroomBody);
     const PAM = new Set(P.reward);
     const PPL = new Set(P.punish);
@@ -117,7 +123,7 @@ export class MushroomBodyMemory {
 
   /** Call once per frame, after the network has stepped. */
   update(dt) {
-    const { sim, rest, mbons, da, tonic, s, edges, edgeKC, edgeSlot, base } = this;
+    const { sim, rest, mbons, da, tonic, s, edges, edgeKC, edgeSlot, base, sparse } = this;
     const rate = sim.rate;
 
     // dopamine arriving in each compartment, and the part of it that is a burst
@@ -134,7 +140,8 @@ export class MushroomBodyMemory {
     for (let e = 0; e < edges.length; e++) {
       const k = edgeSlot[e];
       let v = s[e];
-      v += -ETA * rate[edgeKC[e]] * da[k] * v * dt + (1 - v) * forget;
+      const kc = sparse ? Math.max(0, rate[edgeKC[e]] - rest[edgeKC[e]]) * sparse : rate[edgeKC[e]];
+      v += -ETA * kc * da[k] * v * dt + (1 - v) * forget;
       v = v < FLOOR ? FLOOR : v > 1 ? 1 : v;
       s[e] = v;
       sim.weights[edges[e]] = base[e] * v;

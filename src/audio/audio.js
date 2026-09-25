@@ -448,6 +448,82 @@ export class Sound {
     this.tone({ at: 2.6, freq: 180, to: 40, dur: 2.2, gain: 0.1, type: 'sine' });
   }
 
+  // ---- the gaming setup, through the headset ---------------------------------
+
+  /** A rifle shot: a crack and a thump. */
+  gunshot() {
+    this.burst({ freq: 1600 + Math.random() * 600, q: 0.8, gain: 0.13, dur: 0.05, decay: 2.5 });
+    this.tone({ freq: 150, to: 55, dur: 0.1, gain: 0.1, type: 'triangle' });
+  }
+
+  /** The headshot ding. */
+  ding() {
+    this.tone({ freq: 1760, dur: 0.35, gain: 0.07 });
+    this.tone({ at: 0.005, freq: 2637, dur: 0.25, gain: 0.035 });
+  }
+
+  /** A sword through the air. */
+  swing() { this.burst({ freq: 900, q: 1, gain: 0.07, dur: 0.1 }); }
+
+  /** A block breaking. */
+  crunch() {
+    for (let i = 0; i < 3; i++) this.burst({ at: i * 0.035, freq: 450 + Math.random() * 450, q: 2, gain: 0.08, dur: 0.05 });
+  }
+
+  /** Something green, right behind you. */
+  hiss() { this.burst({ freq: 3200, q: 0.4, gain: 0.1, dur: 1.4, type: 'highpass', decay: 2 }); }
+
+  boom() {
+    this.tone({ freq: 90, to: 28, dur: 1.3, gain: 0.3, type: 'sine', attack: 0.01 });
+    this.burst({ freq: 320, q: 0.7, gain: 0.32, dur: 0.6, type: 'lowpass', decay: 4 });
+  }
+
+  /** An ability going out. */
+  cast() {
+    this.tone({ freq: 520, to: 1100, dur: 0.18, gain: 0.04, type: 'square' });
+    this.burst({ freq: 3200, q: 3, gain: 0.05, dur: 0.06 });
+  }
+
+  /** A message in the voice channel's text chat. */
+  ping() {
+    this.tone({ freq: 880, dur: 0.12, gain: 0.05 });
+    this.tone({ at: 0.07, freq: 1320, dur: 0.2, gain: 0.04 });
+  }
+
+  /** The fly typing, hard. */
+  clack(n = 8) {
+    for (let i = 0; i < n; i++) this.burst({ at: i * (0.045 + Math.random() * 0.03), freq: 2800 + Math.random() * 2400, q: 7, gain: 0.07, dur: 0.02 });
+  }
+
+  /** The mouse button. */
+  click() { this.burst({ freq: 4200, q: 6, gain: 0.04, dur: 0.012 }); }
+
+  /** A foreleg on the desk: a thump, and everything on the desk rattling. */
+  slam() {
+    this.tone({ freq: 75, to: 38, dur: 0.4, gain: 0.34, type: 'sine', attack: 0.003 });
+    this.burst({ freq: 240, q: 0.9, gain: 0.34, dur: 0.22, type: 'lowpass', decay: 3 });
+    for (let i = 0; i < 12; i++) this.burst({ at: 0.02 + i * 0.022, freq: 2400 + Math.random() * 3000, q: 8, gain: 0.07, dur: 0.02 });
+  }
+
+  /** Losing a match: three notes down. */
+  defeat() {
+    [392, 311.13, 261.63].forEach((f, i) => this.tone({ at: i * 0.16, freq: f, dur: 0.5, gain: 0.09, type: 'triangle', attack: 0.01 }));
+  }
+
+  /** A match found. */
+  queuePop() {
+    this.tone({ freq: 660, dur: 0.18, gain: 0.07 });
+    this.tone({ at: 0.12, freq: 990, dur: 0.3, gain: 0.07 });
+  }
+
+  /** Alt-F4: the game going away, fast. */
+  rageQuit() {
+    [784, 622.25, 523.25, 392].forEach((f, i) => this.tone({ at: i * 0.07, freq: f, dur: 0.2, gain: 0.06, type: 'square' }));
+  }
+
+  /** A flashbang: the ringing. */
+  ring() { this.tone({ freq: 3400, dur: 2.2, gain: 0.05, type: 'sine', attack: 0.01 }); }
+
   setMuted(m) {
     this.muted = m;
     if (m) this.stopSnore();

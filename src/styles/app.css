@@ -1648,3 +1648,62 @@ a.pill { text-decoration: none; }
   .tiktok-feed-item.next { transform: none; visibility: hidden; }
   .edit-overlay { animation: none; }
 }
+
+/* ---------- the gamer fly (/game/) ---------- */
+
+.venue-game .slip { top: auto; bottom: calc(var(--gutter) + 3.6rem); }
+.gamebank { min-width: 16rem; max-width: 18rem; }
+.game-now { display: grid; justify-items: end; gap: 0.15rem; }
+.game-now b { font-size: 1.3rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; text-align: right; }
+.game-now span { font-family: var(--mono); font-size: 0.72rem; color: var(--ink-2); }
+.game-line { margin: 0; font-family: var(--mono); font-size: 0.68rem; color: var(--ink-2); text-align: right; }
+
+/* tilt: a bar with its two marks, the slam and the rage-quit */
+.tilt { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.6rem; align-self: stretch; }
+.tilt-label { font-size: 0.78rem; font-weight: 600; }
+.tilt-track { position: relative; height: 10px; border-radius: 5px; background: var(--track); }
+.tilt-track i {
+  position: absolute; inset: 0 auto 0 0; width: calc(var(--v, 0) * 100%); border-radius: 5px;
+  background: linear-gradient(90deg, var(--accent), var(--alarm));
+  transition: width 0.2s ease-out;
+}
+.tilt-track s { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
+.tilt output { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; min-width: 2.6rem; text-align: right; }
+.gamebank .stake-pulls { flex-wrap: wrap; justify-content: flex-end; row-gap: 0.3rem; }
+.pull-memory[data-sign='neg'] i::after, .pull-tilt i::after { background: var(--alarm); }
+.pull-chase i::after { background: var(--accent); }
+.pull-novelty i::after { background: #3f8f5c; }
+
+.gamelog i.w { background: var(--accent); }
+.gamelog i.l { background: var(--alarm); }
+.gamelog i.q { background: #7c1d12; height: 21px; }
+
+/* what it sees: three columns of readers, and tracking */
+.game-cols { grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+.vision-cell.target { --c: var(--accent); }
+.vital.track .vital-track i { background: var(--accent); }
+
+/* which game hurts: a value either side of zero */
+.league.games .league-rows { gap: 0.45rem; }
+.game-row { display: grid; grid-template-columns: 5rem 1fr 3.2rem; grid-template-rows: auto auto; align-items: center; column-gap: 0.6rem; }
+.game-row span { font-size: 0.85rem; }
+.game-row[data-on='1'] span { font-weight: 600; }
+.game-row[data-on='1'] span::after { content: ' ●'; color: var(--accent); font-size: 0.6rem; vertical-align: middle; }
+.game-row output { font-family: var(--mono); font-size: 0.72rem; text-align: right; }
+.game-row[data-sign='neg'] output { color: var(--alarm); }
+.game-row small { grid-column: 2 / 4; font-family: var(--mono); font-size: 0.64rem; color: var(--ink-3); }
+.game-value { position: relative; height: 8px; border-radius: 4px; background: var(--track); }
+.game-value::before { content: ''; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--ink-3); }
+.game-value i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: #3f8f5c; left: 50%; width: calc((var(--x, 0.5) - 0.5) * 100%); }
+.game-row[data-sign='neg'] .game-value i { left: calc(var(--x, 0.5) * 100%); width: calc((0.5 - var(--x, 0.5)) * 100%); background: var(--alarm); }
+
+.gameslip.win .stamp { color: var(--accent); }
+.gameslip.loss .stamp { color: var(--alarm); }
+.slip.ragequit .stamp { font-size: 1.35rem; letter-spacing: 0.12em; }
+
+@media (max-width: 560px) {
+  .gamebank { min-width: 0; max-width: 12rem; }
+  .game-now b { font-size: 1rem; }
+  .gamebank .stake-pulls, .gamebank .stake-why { display: none; }
+  .venue-game .slip { bottom: 4.2rem; max-width: calc(100% - 1.8rem); min-width: 0; }
+}

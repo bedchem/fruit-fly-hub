@@ -73,10 +73,13 @@ export const REST_HAND = HAND;
  * position after the head has turned — what the proboscis grows out of.
  * `pose` places the fly; it defaults to the seat on the casino's stool, and a
  * second fly is the same pose moved along the floor.
+ * `headSlot`, if given, is rendered in the fly's own model space and turned
+ * with the head every frame — a headset stays on the head it was fitted to.
  */
-export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mouthLocal, pose = FLY }) {
+export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mouthLocal, pose = FLY, headSlot = null }) {
   const { scene } = useGLTF('/models/fly.glb', '/draco/');
   const groupRef = useRef();
+  const headRef = useRef();
   const uniforms = useRef(null);
 
   const model = useMemo(() => {
@@ -201,6 +204,8 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
     const glance = Math.sin(t * 0.8) * 0.012;
     const look = solveHeadLook([tmp.local.x + glance, tmp.local.y + glance * 0.6, tmp.local.z]);
     u.uHead.value.set(look[0], look[1], look[2], look[3]);
+    // whatever is worn on the head turns with it, rigidly, about the same neck
+    if (headRef.current) headRef.current.quaternion.set(look[0], look[1], look[2], look[3]);
     if (mouthRef && mouthLocal) {
       // Match the shader's blended head weight: the mouth is at the soft edge
       // of the neck mask, so a full rotation would detach the pouch and straw.
@@ -259,6 +264,12 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
       scale={pose.scale}
     >
       <primitive object={model.root} />
+      {headSlot && (
+        /* the shader turns the head as neck + q·(p − neck); so does this pair of groups */
+        <group ref={headRef} position={NECK}>
+          <group position={[-NECK[0], -NECK[1], -NECK[2]]}>{headSlot}</group>
+        </group>
+      )}
     </group>
   );
 }

@@ -1,6 +1,6 @@
 # How Fly Lab works
 
-**Fly Lab** is a set of experiments with one real fruit fly brain, each putting the same CT-scanned fly somewhere new. There are four so far: the [slot machine](/casino/), the [bar](/bar/), the [trading desk](/trade/) and [two flies doomscrolling](/scroll/). Most of this page is about the first; the others have their own sections further down.
+**Fly Lab** is a set of experiments with one real fruit fly brain, each putting the same CT-scanned fly somewhere new. There are five so far: the [slot machine](/casino/), the [bar](/bar/), the [trading desk](/trade/), [two flies doomscrolling](/scroll/) and [the gamer](/game/). Most of this page is about the first; the others have their own sections further down.
 
 **Fruit Fly Slot Machine** is an interactive neuroscience piece that runs in the browser. A micro-CT scan of a real fruit fly (*Drosophila melanogaster*) sits on a bar stool and plays a one-armed bandit by itself. Beside it, 60,000 real neurons from the MaleCNS connectome are drawn at their measured positions and light up as it plays.
 
@@ -100,11 +100,22 @@ If edits are configured, the feed can also serve real TikTok fan edits, but only
 
 The phone's light holds sleep off, and usually the battery gives out first. In the morning there is a screen-time report, and the next night's feed starts where the last one ended.
 
+## At the gaming setup
+
+The fifth experiment puts the fly in a gaming chair with a headset on, in front of a curved monitor, a vertical one and a PC full of RGB. It plays four games in turn: League of Legends, Minecraft, Fortnite and Counter-Strike 2. The games are drawn by us, procedurally, from their conventions: a lane seen from above, blocks at night, a storm, a sandy corridor. There is no footage, no logo and no asset from any of them, and none of their makers is involved. Nobody controls the fly; its right foreleg is on the mouse.
+
+The game goes in through the fly's own senses. The in-game view swinging left or right is wide-field horizontal motion, the stimulus of the optomotor response, and it drives the horizontal motion detectors T4a/T5a and T4b/T5b. Which way the fly's reflex pulls is read back from the cell types its wiring makes selective for one direction over the other, found at start-up by the same probe the trading desk uses for up and down. An enemy on screen is a small moving target. It drives LC10a and LC11, the lobula columnar cells for small objects. LC10a is what a courting male tracks a female with. What comes back downstream of them sets how fast the crosshair gets onto the enemy. On MaleCNS the probe finds the anterior optic tubercle among those readers, which is where LC10 projects in a real fly. A gank, a creeper or a player jumping the wall is a looming stimulus: it drives LPLC2 and LC4 to the giant fibre, DNp01. Past threshold, the fly flinches, and the escape reflex is wasted on a mouse. Gunfire and teammates shouting through the headset drive Johnston's organ, JO-A and JO-B.
+
+Kills and wins drive PAM; deaths, defeats and flame drive PPL1. Each game drives its own sparse set of Kenyon cells, the way an odour would, so the mushroom body learns what each game does to the fly separately. The sets overlap through the network, so some of what one game teaches spreads to the others. After every match the fly chooses again: the same game, or another one. The choice comes from what it has learned, from NPF (low NPF means "one more"), from novelty, and from tilt. Playing the same game match after match habituates, so it pulls less.
+
+Tilt is the model's name for a persistent, scalable state built from deaths, defeats and flame through PPL1 and octopamine, and bled off by wins. It makes the fly's aim shaky. Fly aggression needs octopamine (Hoyer et al. 2008; Zhou et al. 2008). Tilted far enough, the fly slams the desk with its foreleg. Further still, it rage-quits: Alt-F4, the desktop, another game. Its mushroom body remembers the game that did it, and it queues for something anyway.
+
 ## What it is not
 
 - It is not a recording of a real fly. The anatomy is measured; the dynamics are a model.
 - It is not a gambling site. There is no money, no betting and nothing to buy; the fly plays alone.
 - It is not investment advice. The trading desk uses a simulated market and paper money.
+- It is not affiliated with Riot Games, Mojang Studios, Microsoft, Epic Games or Valve. The games on the fly's monitor are drawn by us and named for what they are.
 - It does not promote alcohol or nicotine. The bar shows a fly passing out, poisoning itself and waking up hungover.
 - It is not affiliated with, or endorsed by, HHMI Janelia, Google, the University of Cambridge or the MRC LMB.
 
