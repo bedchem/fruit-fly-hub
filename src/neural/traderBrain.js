@@ -46,9 +46,10 @@ const indices = (meta, names) => names.map((n) => meta.names.indexOf(n)).filter(
 /**
  * Finds the cell types that the connectome itself makes selective for up
  * versus down, by driving each set of detectors on a fresh network and
- * comparing where the activity lands.
+ * comparing where the activity lands. `a` and `b` name the two detector sets
+ * to compare; the defaults are the vertical ones the trading desk reads.
  */
-export function findMotionReaders(graph, meta, count = READERS) {
+export function findMotionReaders(graph, meta, count = READERS, a = UP, b = DOWN) {
   const settle = () => {
     const sim = new ConnectomeSim(graph);
     for (let i = 0; i < 12; i++) sim.step(0.25);
@@ -62,8 +63,8 @@ export function findMotionReaders(graph, meta, count = READERS) {
     for (let i = 0; i < 8; i++) sim.step(0.25);
     return Float32Array.from(sim.rate, (r, i) => r - rest[i]);
   };
-  const up = indices(meta, UP);
-  const down = indices(meta, DOWN);
+  const up = indices(meta, a);
+  const down = indices(meta, b);
   const ru = response(up);
   const rd = response(down);
   const skip = new Set([...up, ...down]);

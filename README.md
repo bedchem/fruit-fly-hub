@@ -26,6 +26,7 @@ The site is **Fly Lab**: a hub at `/` with one tile per experiment, all built on
 | `/bar/` | **Fruit Fly at the Bar**, see [The bar](#the-bar) |
 | `/trade/` | **Fruit Fly Trading Desk**, see [The trading desk](#the-trading-desk) |
 | `/scroll/` | **Two Flies Doomscrolling**, see [Doomscrolling](#doomscrolling) |
+| `/game/` | **Fruit Fly Gamer**, see [The gamer](#the-gamer) |
 
 New experiments get a page folder (`<name>/index.html`), an entry in `src/entries/`, a Vite input in `vite.config.js`, a row in `seo/content.js`, and a tile in `index.html`.
 
@@ -141,6 +142,19 @@ With TikTok allowed, the doomscroll feed shows only Sabrina Carpenter edits, eve
 - **Player errors:** a post that TikTok reports as unavailable (error 1001, for example when it was deleted or embedding is off) is dropped for good. Server and playback errors load the video again, quietly, up to twice (the first players of a visit often fail while TikTok's session is still being set up), and skip it only if it keeps failing. A blocked autoplay is retried muted.
 - TikTok shows its **own** cookie notice inside the player the first time. That choice belongs to the visitor.
 
+## The gamer
+
+The fifth experiment, at `/game/`. The fly sits in a gaming chair with a headset on and plays **League of Legends, Minecraft, Fortnite and CS2** in turn, on a curved monitor, with a vertical one beside it for the team's voice chat and the scoreboard, and a PC full of RGB. Its right foreleg is on the mouse. Nobody controls it. The games are painted procedurally in `src/scene/gamePainters.js`; no footage, logo or asset of any of them is used.
+
+- **It aims with its reflexes.** The in-game view turning is wide-field motion on the horizontal motion detectors (T4a/T5a against T4b/T5b). The turn is read back from cells the connectome makes direction-selective, found at start-up by the trading desk's probe, now parametrised.
+- **It tracks like it courts.** An enemy drives LC10a and LC11, the small-object cells. What comes back downstream sets how fast the crosshair gets onto the target. The probe finds the anterior optic tubercle (AOTU008, AOTU050) among the readers, which is where LC10 projects in a real fly.
+- **A creeper is a loom.** Ganks, creepers, players over the wall and peeks drive LPLC2/LC4 to the giant fibre DNp01. Past threshold the fly flinches, with a panic flick and a wasted shot.
+- **It hears the headset.** Gunfire and teammates shouting drive Johnston's organ (JO-A/B).
+- **It learns each game.** Each game drives its own sparse set of Kenyon cells. `MushroomBodyMemory` takes a `sparse` option so that only activity above the floor learns. The fly's value for each game is read through that game's own Kenyon cells.
+- **It rages.** Tilt is a model state fed by deaths, defeats and flame through PPL1 and octopamine. Past one mark, a death ends on the desk (a foreleg slam, with everything going red). Past another, a lost match ends in a rage-quit: Alt-F4, the desktop, another game. Its choice comes from memory, NPF, novelty, tilt and habituation.
+
+`node tools/sim-game.mjs --league 10 8` plays eight seeded ten-minute sessions. In a typical run the fly slams the desk about once a minute, rage-quits one to four times, switches game five times or so, and ends up hating a different game depending on the seed.
+
 ## Run it locally
 
 ### Requirements
@@ -198,6 +212,15 @@ node tools/check-trade-reach.mjs
 # Two flies doomscrolling, headless: sends, flinches, dead phones, morning reports, brain sync
 node tools/sim-scroll.mjs 6 1
 node tools/check-scroll-reach.mjs
+
+# The gamer, headless: kills, deaths, flinches, slams, rage-quits and what it learns about each game
+node tools/sim-game.mjs 10 1
+node tools/sim-game.mjs --league 10 8
+
+# Mouse and desk in reach, the headset fitted to the head, the shot framed
+node tools/check-game-reach.mjs
+node tools/fit-headset.mjs
+node --test tools/test-game-camera.mjs
 ```
 
 The game model is deterministic under a seed, which makes behavioural changes reviewable rather than anecdotal.
@@ -208,9 +231,10 @@ The game model is deterministic under a seed, which makes behavioural changes re
 src/
   entries/     one entry per experiment page, mounted through mount.jsx
   hub/         the Fly Lab hub's stylesheet (the hub itself is index.html)
-  scene/       Three.js scenes (casino, bar, trading desk, doomscroll), fly rig, props, cameras
+  scene/       Three.js scenes (casino, bar, trading desk, doomscroll, gaming setup), fly rig, props, cameras
   game/        deterministic state machines and decision policies: machine.js, bar.js,
-               trader.js and the seeded market it trades, market.js, and scroll.js
+               trader.js and the seeded market it trades, market.js, scroll.js, and gamer.js
+               with the four games it plays, games.js
   neural/      connectome loading, rate model, learning, drug pharmacology, visual scope
   audio/       synthesized Web Audio feedback; no sampled soundtrack
   ui/          live readouts, stress meter, thoughts, memory, ledger, slips
@@ -233,6 +257,7 @@ Before deploying, replace the remaining host and privacy-policy placeholders in 
 - **Connectome:** [MaleCNS v1.0](https://male-cns.janelia.org/) by FlyEM/HHMI Janelia, University of Cambridge, MRC LMB, and Google Research — CC BY 4.0.
 - **Fruit fly model:** [Drosophila adult fruit fly CT scan](https://sketchfab.com/3d-models/drosophila-adult-fruit-fly-ct-scan-ad29b897bd2b4e27bb04ab9d31baa117) by etainproject — CC BY 4.0.
 - **Slot-machine model:** [Pillar Slots](https://sketchfab.com/3d-models/pillar-slots-91e255e5a95745f4857607b388421ee1) by local.yany — CC BY 4.0.
+- **Games:** League of Legends (Riot Games), Minecraft (Mojang Studios / Microsoft), Fortnite (Epic Games) and Counter-Strike 2 (Valve) are named for what the fly plays. Their screens are drawn procedurally by this project, and Fly Lab is not affiliated with any of them.
 - **Project authors:** [ryhox](https://github.com/ryhox), [Nexor](https://github.com/plattnericus) and [peramanu](https://github.com/peramanu).
 
 The project code is released under the [MIT License](LICENSE). Asset and dataset licenses remain those of their respective creators.
