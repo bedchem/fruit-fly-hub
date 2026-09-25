@@ -25,7 +25,7 @@
  */
 import POKYH from './pokyhCode.js';
 import {
-  tapKeyFor, keyPoint, padPoint, MUG_GRIP, PALM_REST, TYPING_HUNCH, mugPose,
+  tapKeyFor, reachableKey, keyPoint, padPoint, MUG_GRIP, PALM_REST, TYPING_HUNCH, mugPose,
 } from '../scene/codeLayout.js';
 
 export const PHASES = {
@@ -504,7 +504,11 @@ export class Coder {
     this.grip += ((rest ? 1 : 0) - this.grip) * Math.min(1, dt * 3);
     if (rest) lerp3(this.handTarget, PALM_REST, Math.min(1, dt * 6), this.handTarget);
     this.pressDepth += (0 - this.pressDepth) * k;
-    this.lean += (0.9 - this.lean) * Math.min(1, dt * 2);
+    // it sits back up once the foreleg is off the far keys, not before: the
+    // keys are only in reach hunched over them
+    const off = Math.hypot(this.handTarget[0] - PALM_REST[0], this.handTarget[1] - PALM_REST[1], this.handTarget[2] - PALM_REST[2]);
+    const settled = !rest || this.grip < 0.3 || off < 0.03;
+    this.lean += (0.9 - this.lean) * Math.min(1, dt * (settled ? 2 : 0.25));
     this.extend += (0 - this.extend) * k;
     this.proboscis *= Math.exp(-dt * 5);
     this.mugLift *= Math.exp(-dt * 5);
@@ -622,7 +626,8 @@ export class Coder {
       }
       this.tap = { ...p, text, typo };
     }
-    this.tapKey = this.tap.key;
+    // delete, return and tab are past the foreleg's reach: it hits the nearest key it gets to
+    this.tapKey = reachableKey(this.tap.key);
     this.from = this.handTarget.slice();
     this.tapT = 0;
     this.tapLen = 1 / Math.max(1.5, this.tapRate);
@@ -677,7 +682,9 @@ export class Coder {
   updateTyping(dt) {
     const ed = this.editor;
     this.lean += (TYPING_HUNCH + this.fear * 0.8 - this.lean) * Math.min(1, dt * 4);
-    this.grip = Math.min(1, this.grip + dt / T.reach);
+    // the keys are only in reach hunched over them: the foreleg gets there as the body does
+    const hunched = clamp01((this.lean - 1) / (TYPING_HUNCH - 1.08));
+    this.grip = Math.min(1, this.grip + dt / T.reach, 0.2 + 0.8 * hunched);
     this.tapT += dt;
     const k = clamp01(this.tapT / this.tapLen);
     // over to the key in the first part of the beat, down on it, up again

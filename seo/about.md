@@ -1,6 +1,6 @@
 # How Fly Lab works
 
-**Fly Lab** is a set of experiments with one real fruit fly brain, each putting the same CT-scanned fly somewhere new. There are five so far: the [slot machine](/casino/), the [bar](/bar/), the [trading desk](/trade/), [two flies doomscrolling](/scroll/) and [the gamer](/game/). Most of this page is about the first; the others have their own sections further down.
+**Fly Lab** is a set of experiments with one real fruit fly brain, each putting the same CT-scanned fly somewhere new. There are six so far: the [slot machine](/casino/), the [bar](/bar/), the [trading desk](/trade/), [two flies doomscrolling](/scroll/), [the gamer](/game/) and [the coder](/code/). Most of this page is about the first; the others have their own sections further down.
 
 **Fruit Fly Slot Machine** is an interactive neuroscience piece that runs in the browser. A micro-CT scan of a real fruit fly (*Drosophila melanogaster*) sits on a bar stool and plays a one-armed bandit by itself. Beside it, 60,000 real neurons from the MaleCNS connectome are drawn at their measured positions and light up as it plays.
 
@@ -110,12 +110,21 @@ Kills and wins drive PAM; deaths, defeats and flame drive PPL1. Each game drives
 
 Tilt is the model's name for a persistent, scalable state built from deaths, defeats and flame through PPL1 and octopamine, and bled off by wins. It makes the fly's aim shaky. Fly aggression needs octopamine (Hoyer et al. 2008; Zhou et al. 2008). Tilted far enough, the fly slams the desk with its foreleg. Further still, it rage-quits: Alt-F4, the desktop, another game. Its mushroom body remembers the game that did it, and it queues for something anyway.
 
+## At the desk, coding
+
+The sixth experiment puts the fly at a wooden desk in a cozy room at night. There is rain on the window, a string of fairy lights, a desk lamp, plants and a bookshelf, with a MacBook under its right foreleg and an external monitor behind it. It works on POKYH, its team's web app for the students of LBS Brixen, from half past ten until the sun comes up. What it types, a character at a time, is real code from the public pokyh-frontend repository, snapshotted at build time. Nothing is fetched from GitHub while the page runs. It saves, builds, commits, pushes and waits on CI, and green on main ships to pokyh.com. Type errors, red builds, merge conflicts and CI failures drive PPL1; green builds, commits and deploys drive PAM, and a deploy is the jackpot.
+
+It drinks coffee, and nobody tells it when. Flies sleep, and a population in the dorsal layers of the fan-shaped body promotes it: the longer a fly is awake, the more excitable those neurons become, and driving them puts a fly to sleep (Donlea et al. 2011, 2014). On MaleCNS they are the FB6 types. Sleep pressure, meaning the hours awake plus the small hours, is current into them, and what they answer is the sleep drive the fly nods off on. Caffeine cuts that drive, the way it blocks the adenosine signal of sleep pressure. In flies its wake effect runs through dopamine: it acts on the PAM neurons, and without them it does not keep a fly awake (Nall et al. 2016). Caffeine is modelled like the bar's drugs, as a level in mg that is absorbed and cleared. It builds tolerance, brings jitters at high doses, and a crash as a big dose wears off.
+
+Coffee is also bitter, and flies avoid caffeine: bitter taste neurons detect it (Lee et al. 2009). Every sip drives the gustatory neurons and PPL1, less as the taste becomes familiar, while the caffeine arriving drives PAM. The mushroom body learns which of the two wins. When the fly's head drops towards the keyboard, that is a looming stimulus on LPLC2 and LC4. If the giant fibre fires, it jerks awake. If not, it falls asleep on the keys, and the editor fills with whatever its tarsus rests on until the morning.
+
 ## What it is not
 
 - It is not a recording of a real fly. The anatomy is measured; the dynamics are a model.
 - It is not a gambling site. There is no money, no betting and nothing to buy; the fly plays alone.
 - It is not investment advice. The trading desk uses a simulated market and paper money.
 - It is not affiliated with Riot Games, Mojang Studios, Microsoft, Epic Games or Valve. The games on the fly's monitor are drawn by us and named for what they are.
+- It is not affiliated with Apple. The coder's laptop is drawn generically.
 - It does not promote alcohol or nicotine. The bar shows a fly passing out, poisoning itself and waking up hungover.
 - It is not affiliated with, or endorsed by, HHMI Janelia, Google, the University of Cambridge or the MRC LMB.
 
@@ -128,3 +137,5 @@ React, three.js and React Three Fiber, with the simulation, the learning and the
 - Fly scan © etainproject, CC BY 4.0
 - "Pillar Slots" cabinet © local.yany, CC BY 4.0
 - MaleCNS v1.0 © FlyEM/HHMI Janelia, University of Cambridge, MRC LMB and Google Research, CC BY 4.0
+- Plants, desk lamp, shelf, books and wall clock in the coder's room from Poly Haven, CC0
+- The code on the coder's screens is from POKYH's public frontend, by BedChem

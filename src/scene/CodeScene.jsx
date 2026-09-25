@@ -139,7 +139,13 @@ function Rig({ coder, gripTargetRef, dopamineRef, lookRef, coffeeRef, onTick }) 
       base.z + (Math.cos(t * 0.09) * 0.035) * still + p.ax * 0.1,
     );
     camera.lookAt(target);
-    const fov = codeCameraFov(size.width, size.height);
+    let fov = codeCameraFov(size.width, size.height);
+    // dev only: a fixed viewpoint for visual checks (tools/code-visual-fixture.js)
+    if (import.meta.env.DEV && window.__codeCam) {
+      camera.position.set(...window.__codeCam.position);
+      camera.lookAt(...window.__codeCam.target);
+      fov = window.__codeCam.fov ?? fov;
+    }
     if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
 
     uiClock.current += dt;
@@ -787,7 +793,8 @@ function Mug({ coder, coffeeRef }) {
       coffee.current.visible = f > 0.01;
       coffee.current.position.y = level;
       const r = MUG.radius * (0.9 + 0.02 * (level / MUG.height));
-      coffee.current.scale.set(r, 1, r);
+      // the disc lies in its own XY plane, turned flat: scale X and Y, not Z
+      coffee.current.scale.set(r, r, 1);
     }
     surface.set(0, level, 0);
     g.localToWorld(surface);

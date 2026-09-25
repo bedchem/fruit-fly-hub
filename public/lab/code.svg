@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <title>A fruit fly coding on a laptop at night in a cozy room, a mug of coffee steaming, rain on the window and fairy lights</title>
+  <defs>
+    <g id="fly">
+      <ellipse cx="-16" cy="-52" rx="11" ry="34" transform="rotate(-18 -16 -52)" fill="#fff" fill-opacity="0.3" stroke="#c98a4c" stroke-width="1.2"/>
+      <path d="M-4 -30 L-14 0 M2 -30 L6 2" stroke="#b25d1a" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <ellipse cx="-2" cy="-22" rx="16" ry="24" fill="#d9731f"/>
+      <path d="M-16 -26 Q-2 -22 13 -28 M-17 -16 Q-2 -12 14 -18 M-15 -6 Q-2 -3 12 -8" stroke="#a9541a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="4" cy="-56" rx="15" ry="14" fill="#e3872f"/>
+      <circle cx="17" cy="-76" r="11" fill="#e3872f"/>
+      <circle cx="22" cy="-78" r="6.5" fill="#b8321f"/>
+      <path d="M22 -86 l6 -8" stroke="#b25d1a" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="-6" cy="-60" rx="9" ry="26" transform="rotate(-22 -6 -60)" fill="#fff" fill-opacity="0.4" stroke="#c98a4c" stroke-width="1.2"/>
+    </g>
+    <radialGradient id="lamp" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#ffb56b" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffb56b" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c1a3a"/>
+      <stop offset="1" stop-color="#3a2d5c"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="260" fill="#1e1612"/>
+  <!-- the window: night, rain, a city -->
+  <rect x="244" y="22" width="120" height="104" rx="3" fill="url(#sky)"/>
+  <g fill="#ffcf7a" opacity="0.8">
+    <rect x="252" y="92" width="14" height="34" fill="#141226" opacity="1"/>
+    <rect x="270" y="80" width="18" height="46" fill="#171530" opacity="1"/>
+    <rect x="292" y="96" width="16" height="30" fill="#141226" opacity="1"/>
+    <rect x="312" y="74" width="20" height="52" fill="#171530" opacity="1"/>
+    <rect x="336" y="90" width="20" height="36" fill="#141226" opacity="1"/>
+    <rect x="255" y="98" width="3" height="3"/><rect x="274" y="86" width="3" height="3"/><rect x="281" y="100" width="3" height="3"/>
+    <rect x="316" y="82" width="3" height="3"/><rect x="324" y="94" width="3" height="3"/><rect x="341" y="100" width="3" height="3"/>
+    <rect x="297" y="104" width="3" height="3"/>
+  </g>
+  <g stroke="#8fa0e0" stroke-width="1" opacity="0.5">
+    <path d="M258 30 l-3 12 M284 40 l-3 12 M306 28 l-3 12 M330 44 l-3 12 M350 32 l-3 12 M272 58 l-3 12 M342 62 l-3 12"/>
+  </g>
+  <rect x="302" y="22" width="3" height="104" fill="#3a2a22"/>
+  <rect x="238" y="124" width="132" height="6" rx="2" fill="#e8dccb"/>
+  <!-- fairy lights -->
+  <path d="M0 14 Q100 34 200 12 T400 16" stroke="#3a2a22" stroke-width="1" fill="none"/>
+  <g fill="#ffd68a">
+    <circle cx="24" cy="19" r="2.5"/><circle cx="62" cy="25" r="2.5"/><circle cx="104" cy="24" r="2.5"/><circle cx="146" cy="19" r="2.5"/>
+    <circle cx="188" cy="13" r="2.5"/><circle cx="226" cy="14" r="2.5"/><circle cx="268" cy="20" r="2.5"/><circle cx="312" cy="22" r="2.5"/><circle cx="356" cy="18" r="2.5"/>
+  </g>
+  <!-- the lamp's pool of light -->
+  <ellipse cx="170" cy="150" rx="130" ry="70" fill="url(#lamp)"/>
+  <path d="M112 92 L126 60 L140 64" stroke="#c0502a" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M132 58 L152 52 L150 70 Z" fill="#d05a2c"/>
+  <!-- the external monitor with POKYH -->
+  <rect x="156" y="66" width="74" height="46" rx="3" fill="#15131a"/>
+  <rect x="159" y="69" width="68" height="40" rx="2" fill="#221e33"/>
+  <g fill="#5b54c9"><rect x="163" y="74" width="9" height="7"/><rect x="175" y="74" width="9" height="7" opacity="0.6"/><rect x="163" y="84" width="9" height="7" opacity="0.6"/><rect x="175" y="84" width="9" height="7"/></g>
+  <g fill="#7ec8a0"><rect x="192" y="74" width="28" height="2"/><rect x="192" y="80" width="22" height="2"/><rect x="192" y="86" width="26" height="2"/></g>
+  <rect x="190" y="112" width="6" height="16" fill="#15131a"/>
+  <!-- the desk -->
+  <rect x="96" y="150" width="304" height="10" fill="#7a4a2a"/>
+  <rect x="96" y="160" width="304" height="4" fill="#4a2e1c"/>
+  <!-- the laptop -->
+  <path d="M170 150 L234 150 L238 146 L166 146 Z" fill="#2c2c33"/>
+  <path d="M176 146 L182 112 L230 112 L226 146 Z" fill="#1d1c22"/>
+  <path d="M180 142 L185 116 L227 116 L223 142 Z" fill="#161826"/>
+  <g stroke-width="1.6" stroke-linecap="round"><path d="M188 122 h14" stroke="#c792ea"/><path d="M190 127 h20" stroke="#82aaff"/><path d="M190 132 h12" stroke="#ecc48d"/><path d="M188 137 h18" stroke="#7fdbca"/></g>
+  <!-- the mug and its steam -->
+  <rect x="250" y="130" width="18" height="20" rx="3" fill="#e9e1d3"/>
+  <rect x="250" y="140" width="18" height="3" fill="#5b54c9"/>
+  <path d="M268 135 q7 0 7 6 q0 6 -7 6" stroke="#e9e1d3" stroke-width="2.5" fill="none"/>
+  <path d="M255 124 q-4 -6 1 -12 q4 -6 0 -12 M263 124 q-4 -6 1 -12" stroke="#f6ead6" stroke-width="1.6" fill="none" opacity="0.5" stroke-linecap="round"/>
+  <!-- a plant -->
+  <path d="M330 150 l6 -2 l2 -18 l-16 0 l2 18 z" fill="#c9b8a0"/>
+  <path d="M330 130 q-12 -18 -4 -28 M330 130 q2 -22 10 -26 M330 130 q12 -12 18 -10 M330 130 q-16 -6 -20 2" stroke="#4f8a3c" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- the chair -->
+  <rect x="44" y="118" width="24" height="80" rx="10" fill="#6f7d5c"/>
+  <rect x="48" y="198" width="86" height="13" rx="6" fill="#6f7d5c"/>
+  <rect x="88" y="211" width="6" height="34" fill="#2a2a2c"/>
+  <path d="M62 250 L120 250" stroke="#2a2a2c" stroke-width="5" stroke-linecap="round"/>
+  <!-- the fly, its foreleg on the keys -->
+  <use href="#fly" x="92" y="198"/>
+  <path d="M112 150 Q150 132 196 144" stroke="#b25d1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+</svg>

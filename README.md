@@ -27,6 +27,7 @@ The site is **Fly Lab**: a hub at `/` with one tile per experiment, all built on
 | `/trade/` | **Fruit Fly Trading Desk**, see [The trading desk](#the-trading-desk) |
 | `/scroll/` | **Two Flies Doomscrolling**, see [Doomscrolling](#doomscrolling) |
 | `/game/` | **Fruit Fly Gamer**, see [The gamer](#the-gamer) |
+| `/code/` | **Fruit Fly Codes POKYH**, see [The coder](#the-coder) |
 
 New experiments get a page folder (`<name>/index.html`), an entry in `src/entries/`, a Vite input in `vite.config.js`, a row in `seo/content.js`, and a tile in `index.html`.
 
@@ -155,6 +156,16 @@ The fifth experiment, at `/game/`. The fly sits in a gaming chair with a headset
 
 `node tools/sim-game.mjs --league 10 8` plays eight seeded ten-minute sessions. In a typical run the fly slams the desk about once a minute, rage-quits one to four times, switches game five times or so, and ends up hating a different game depending on the seed.
 
+## The coder
+
+The sixth experiment, at `/code/`. The fly spends the night at a wooden desk in a cozy room (rain on the window, fairy lights, a desk lamp, plants) and works on **POKYH**, the team's web app, on a MacBook and an external monitor. It drinks coffee. Nobody controls it.
+
+- **Real code.** `tools/refresh-pokyh-code.mjs` copies a whitelist of UI files from the public `bedchem/pokyh-frontend` into `src/game/pokyhCode.js` at build time. API routes, auth and config are excluded, and lines that look like secrets are scanned out. At runtime nothing is fetched. The fly types that code a character at a time with its right foreleg on the MacBook's real key layout; keys out of its reach are typed on the nearest one it reaches.
+- **The work.** Saves, type errors, builds, commits, pushes, merge conflicts and CI all run in `src/game/coder.js`. Red drives PPL1, green drives PAM, and a deploy to pokyh.com is the jackpot.
+- **Sleep.** Sleep pressure and the small hours drive the dorsal fan-shaped body (the FB6 types), whose answer is the sleep drive it nods off on (Donlea et al. 2011, 2014). A nod is a loom on LPLC2/LC4. If the giant fibre fires it jerks awake; if not, it sleeps on the keys until sunrise.
+- **Caffeine.** Modelled like the bar's drugs: absorption, a half-life, tolerance, jitters and a crash. It cuts the sleep drive, drives PAM and raises dopaminergic gain (Nall et al. 2016). It is bitter, and every sip drives the gustatory neurons and PPL1 (Lee et al. 2009), less as the taste becomes familiar.
+- **The room.** Six CC0 Poly Haven props (`tools/fetch-polyhaven.mjs`), compressed to about 2 MB; everything else is procedural.
+
 ## Run it locally
 
 ### Requirements
@@ -221,6 +232,11 @@ node tools/sim-game.mjs --league 10 8
 node tools/check-game-reach.mjs
 node tools/fit-headset.mjs
 node --test tools/test-game-camera.mjs
+
+# The coder, headless: coffee, commits, red builds, CI, nods and sleep, night after night
+node tools/sim-code.mjs 10 1
+node tools/check-code-reach.mjs
+node --test tools/test-code-camera.mjs
 ```
 
 The game model is deterministic under a seed, which makes behavioural changes reviewable rather than anecdotal.
@@ -231,10 +247,11 @@ The game model is deterministic under a seed, which makes behavioural changes re
 src/
   entries/     one entry per experiment page, mounted through mount.jsx
   hub/         the Fly Lab hub's stylesheet (the hub itself is index.html)
-  scene/       Three.js scenes (casino, bar, trading desk, doomscroll, gaming setup), fly rig, props, cameras
+  scene/       Three.js scenes (casino, bar, trading desk, doomscroll, gaming setup, coder's room), fly rig, props, cameras
   game/        deterministic state machines and decision policies: machine.js, bar.js,
                trader.js and the seeded market it trades, market.js, scroll.js, and gamer.js
-               with the four games it plays, games.js
+               with the four games it plays, games.js, and coder.js with the POKYH
+               code it types, pokyhCode.js
   neural/      connectome loading, rate model, learning, drug pharmacology, visual scope
   audio/       synthesized Web Audio feedback; no sampled soundtrack
   ui/          live readouts, stress meter, thoughts, memory, ledger, slips
@@ -258,6 +275,8 @@ Before deploying, replace the remaining host and privacy-policy placeholders in 
 - **Fruit fly model:** [Drosophila adult fruit fly CT scan](https://sketchfab.com/3d-models/drosophila-adult-fruit-fly-ct-scan-ad29b897bd2b4e27bb04ab9d31baa117) by etainproject — CC BY 4.0.
 - **Slot-machine model:** [Pillar Slots](https://sketchfab.com/3d-models/pillar-slots-91e255e5a95745f4857607b388421ee1) by local.yany — CC BY 4.0.
 - **Games:** League of Legends (Riot Games), Minecraft (Mojang Studios / Microsoft), Fortnite (Epic Games) and Counter-Strike 2 (Valve) are named for what the fly plays. Their screens are drawn procedurally by this project, and Fly Lab is not affiliated with any of them.
+- **Coder's room props:** plants, desk lamp, shelf, books and wall clock from [Poly Haven](https://polyhaven.com), CC0.
+- **POKYH code:** from [bedchem/pokyh-frontend](https://github.com/bedchem/pokyh-frontend), by BedChem. The laptop is drawn generically; no affiliation with Apple.
 - **Project authors:** [ryhox](https://github.com/ryhox), [Nexor](https://github.com/plattnericus) and [peramanu](https://github.com/peramanu).
 
 The project code is released under the [MIT License](LICENSE). Asset and dataset licenses remain those of their respective creators.

@@ -162,7 +162,15 @@ const CHAR_KEY = (() => {
 
 /** The key a character is typed on: its own if the foreleg reaches it, else the nearest one it does. */
 export function tapKeyFor(ch) {
-  const want = KEY[CHAR_KEY(ch)];
+  return reachableKey(CHAR_KEY(ch));
+}
+
+/**
+ * A key by its label, or — for delete, return, tab and the rest the foreleg
+ * cannot get to — the nearest one it can.
+ */
+export function reachableKey(label) {
+  const want = KEY[label] ?? KEY.space;
   if (TAP_KEYS.includes(want.label)) return want.label;
   let best = TAP_KEYS[0], bd = Infinity;
   for (const label of TAP_KEYS) {
@@ -256,9 +264,9 @@ export const PRESS = { base: [0.6, DESK.top, -0.62], height: 0.2, radius: 0.052 
  * middle of the stage, between the title and the HUD.
  */
 export const CODE_CAMERA = {
-  position: [2.62, 2.28, -1.72],
-  target: [0.62, 1.6, -0.34],
-  fov: 42,
+  position: [2.45, 2.25, -2.05],
+  target: [0.55, 1.6, -0.35],
+  fov: 36,
 };
 
 /** A portrait canvas needs a wider lens to keep the desk in. */

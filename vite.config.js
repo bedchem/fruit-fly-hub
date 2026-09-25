@@ -24,6 +24,7 @@ export default defineConfig({
         trade: 'trade/index.html',
         scroll: 'scroll/index.html',
         game: 'game/index.html',
+        code: 'code/index.html',
         about: 'about.html',
         legal: 'legal.html',
         notFound: '404.html',

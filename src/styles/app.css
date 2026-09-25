@@ -1707,3 +1707,58 @@ a.pill { text-decoration: none; }
   .gamebank .stake-pulls, .gamebank .stake-why { display: none; }
   .venue-game .slip { bottom: 4.2rem; max-width: calc(100% - 1.8rem); min-width: 0; }
 }
+
+/* ---------- the coder fly (/code/) ---------- */
+
+.venue-code .slip { top: auto; bottom: calc(var(--gutter) + 3.6rem); }
+.codebank { min-width: 16rem; max-width: 18rem; }
+.code-now { display: grid; justify-items: end; gap: 0.1rem; }
+.code-now b { font-family: var(--mono); font-size: 1.05rem; font-weight: 500; letter-spacing: -0.02em; }
+.code-now span { font-family: var(--mono); font-size: 0.66rem; color: var(--ink-3); }
+.code-clock { margin: 0; font-family: var(--mono); font-size: 1.5rem; font-weight: 500; line-height: 1; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; }
+.code-line { margin: 0; font-family: var(--mono); font-size: 0.66rem; color: var(--ink-2); text-align: right; }
+
+/* caffeine and the sleep drive: bars with their marks */
+.meter { display: grid; grid-template-columns: 4.6rem 1fr 3.4rem; align-items: center; gap: 0.5rem; align-self: stretch; }
+.meter-label { font-size: 0.76rem; font-weight: 600; }
+.meter-track { position: relative; height: 10px; border-radius: 5px; background: var(--track); }
+.meter-track i { position: absolute; inset: 0 auto 0 0; width: calc(var(--v, 0) * 100%); border-radius: 5px; transition: width 0.25s ease-out; }
+.meter.caf .meter-track i { background: #a0612a; }
+.meter.sleep .meter-track i { background: #5b6ea8; }
+.meter-track s { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
+.meter output { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; text-align: right; }
+.codebank .stake-pulls { flex-wrap: wrap; justify-content: flex-end; row-gap: 0.3rem; }
+.pull-tired i::after { background: #5b6ea8; }
+.pull-crash i::after, .pull-bitter i::after, .pull-jitter i::after { background: var(--alarm); }
+.pull-memory[data-sign='neg'] i::after { background: var(--alarm); }
+
+.codelog i.commit { background: var(--accent); }
+.codelog i.deploy { background: #3f8f5c; height: 21px; }
+.codelog i.ok { background: #8fbf6a; }
+.codelog i.err { background: var(--alarm); }
+.codelog i.ci { background: transparent; box-shadow: inset 0 0 0 1.5px var(--alarm); height: 21px; }
+.codelog i.coffee { background: #6b4226; }
+.codelog i.nod { background: var(--track-2); height: 10px; }
+.codelog i.sleep { background: var(--ink); height: 21px; }
+
+/* caffeine vs sleep */
+.cafsleep-chart { display: block; width: 100%; height: auto; aspect-ratio: 720 / 220; border-radius: var(--radius-sm); background: var(--surface-2); }
+.cafsleep-legend { display: flex; gap: 1rem; font-size: 0.7rem; color: var(--ink-2); }
+.cafsleep-legend span::before { content: ''; display: inline-block; width: 0.9rem; height: 3px; margin-right: 0.35rem; vertical-align: middle; border-radius: 2px; }
+.cafsleep-legend .c::before { background: #a0612a; }
+.cafsleep-legend .s::before { background: #5b6ea8; }
+.dfb-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0.25rem 0.9rem; }
+.vision-cell.dfb { --c: #5b6ea8; }
+
+.codeslip.win .stamp { color: #2f8a4f; }
+.codeslip.loss .stamp { color: var(--alarm); }
+.codeslip.open .stamp { color: var(--accent); }
+.slip.morning .stamp { color: var(--accent); }
+
+@media (max-width: 560px) {
+  .codebank { min-width: 0; max-width: 12.5rem; }
+  .code-clock { font-size: 1.15rem; }
+  .codebank .stake-pulls, .codebank .stake-why, .code-line { display: none; }
+  .meter { grid-template-columns: 3.6rem 1fr 2.8rem; }
+  .venue-code .slip { bottom: 4.2rem; max-width: calc(100% - 1.8rem); min-width: 0; }
+}

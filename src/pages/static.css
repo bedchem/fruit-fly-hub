@@ -194,6 +194,7 @@ a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-
 .lost-tile.navy img { background: #161b24; }
 .lost-tile.night img { background: #0d1119; }
 .lost-tile.rgb img { background: #12101a; }
+.lost-tile.cozy img { background: #1e1612; }
 @media (prefers-reduced-motion: reduce) {
   .lost-fly { animation: none; }
   .lost-tile { transition: none; }
