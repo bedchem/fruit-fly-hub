@@ -59,6 +59,16 @@ const SITUATIONS = [
     lines: ['I am cracked. A small, cracked insect.', 'TAP. TAP. TAP.', 'Did everyone see that. Clip it.'],
   },
   {
+    key: 'rdr2', urgent: false,
+    when: (g) => g.phase === 'playing' && g.game === 'rdr2' && !g.enemy,
+    lines: ['Just me, the horse, and a sunset.', 'Honour is a concept. Bounties are money.', 'I could ride to that mountain. I will not. There is a mission.'],
+  },
+  {
+    key: 'gow', urgent: false,
+    when: (g) => g.phase === 'playing' && (g.game === 'gow' || g.game === 'gowr') && !g.enemy,
+    lines: ['The axe comes back. It always comes back.', 'Six legs, no beard. Still a god of war.', 'Do not be sorry. Be better.'],
+  },
+  {
     key: 'kill', urgent: false,
     when: (g, r) => r?.kind === 'kill',
     lines: ['Got him.', 'LC10a never misses.', 'Tracking like it is courtship season.'],

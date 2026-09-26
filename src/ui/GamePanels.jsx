@@ -129,6 +129,7 @@ export function GameHud({ gamerRef, ui }) {
     else if (m.game === 'cs2') line = `${m.kills}/${m.deaths} · rounds ${m.rounds.us}–${m.rounds.them} of ${CS2_ROUNDS_TO_WIN}`;
     else if (m.game === 'fortnite') line = `${m.kills} elims · ${m.players} left`;
     else if (m.game === 'minecraft') line = `${m.kills} mobs · ${m.deaths} deaths · ${m.carried} 💎 carried`;
+    else if (GAMES[m.game].solo) line = `story · ${m.kills} kills · ${m.deaths} deaths`;
     else line = `${m.kills}/${m.deaths}/${m.assists} · ${m.cs} cs`;
     setText(lineRef.current, line);
     if (tiltRef.current) tiltRef.current.style.setProperty('--v', g.tilt.toFixed(3));
@@ -294,6 +295,7 @@ export function ResultCard({ result }) {
   if (result.game === 'fortnite') line = won ? 'Last one standing.' : `Out at #${result.placement}.`;
   else if (result.game === 'minecraft') line = won ? `Made it to sunrise with ${result.carried} diamonds.` : 'Died on the way home. The diamonds are gone.';
   else if (result.game === 'cs2') line = `${result.rounds.us} : ${result.rounds.them}.`;
+  else if (g.solo) line = won ? 'Mission complete.' : 'Died. Back to the last checkpoint.';
   else line = won ? 'The enemy nexus fell.' : 'The nexus fell. Theirs did not.';
   return (
     <div className={`slip ${won ? 'revive' : 'broke'} gameresult`}>

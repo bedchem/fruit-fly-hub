@@ -55,8 +55,8 @@ export default function GameApp() {
       case 'shot': {
         // the rifle every shot, the rest now and then
         const now = performance.now();
-        if (game === 'cs2' || game === 'fortnite') sound.gunshot();
-        else if (now - lastShotSound.current > 300) { if (game === 'minecraft') sound.swing(); else sound.cast(); }
+        if (game === 'cs2' || game === 'fortnite' || game === 'rdr2') sound.gunshot();
+        else if (now - lastShotSound.current > 300) { if (game === 'lol') sound.cast(); else sound.swing(); }
         lastShotSound.current = now;
         sound.click();
         break;
@@ -148,9 +148,9 @@ export default function GameApp() {
             <a href="https://sketchfab.com/3d-models/drosophila-adult-fruit-fly-ct-scan-ad29b897bd2b4e27bb04ab9d31baa117" target="_blank" rel="noopener">
               fruit fly CT scan
             </a>
-            {' '}by etainproject. League of Legends, Minecraft, Fortnite and Counter-Strike 2 belong to Riot Games,
-            Mojang Studios / Microsoft, Epic Games and Valve; the screens here are drawn by us, and none of them is
-            affiliated with this page.
+            {' '}by etainproject. League of Legends, Minecraft, Fortnite, Counter-Strike 2, Red Dead Redemption 2 and
+            God of War belong to Riot Games, Mojang Studios / Microsoft, Epic Games, Valve, Rockstar Games and Sony
+            Interactive Entertainment; the screens here are drawn by us, and none of them is affiliated with this page.
           </p>
           <a className="source" href={site.repository} target="_blank" rel="noopener">
             <GitHubIcon /> Open source on GitHub

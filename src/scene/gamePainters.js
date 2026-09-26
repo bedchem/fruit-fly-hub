@@ -13,94 +13,18 @@
  * or headless fly draws the same frame; `t` is only for ambient motion.
  */
 import { GAMES, GAME_ORDER, formatRank, CS2_ROUNDS_TO_WIN } from '../game/games.js';
-import { PHASES, HALF_FOV, TAG } from '../game/gamer.js';
+import { PHASES, TAG, HALF_FOV } from '../game/gamer.js';
+import {
+  MAIN_W, MAIN_H, SIDE_W, SIDE_H, SANS, MONO, PX_PER_RAD, TAU, clamp, clamp01, hash, hash2, smooth, vnoise,
+  wrap, font, text, rrect, mmss, camYaw, bearingX, enemyOnScreen, drawFly, drawFeed, pixels, drawCursor,
+} from './painters/kit.js';
+import { RDR2 } from './painters/rdr2.js';
+import { GOW, RAGNAROK } from './painters/gow.js';
 
-export const MAIN_W = 1280;
-export const MAIN_H = 720;
-export const SIDE_W = 540;
-export const SIDE_H = 960;
+export { MAIN_W, MAIN_H, SIDE_W, SIDE_H, drawFly };
 
-const SANS = "'Inter Variable', Inter, system-ui, sans-serif";
-const MONO = "'JetBrains Mono', ui-monospace, Menlo, monospace";
-const PX_PER_RAD = MAIN_W / 2 / HALF_FOV;
-const TAU = Math.PI * 2;
-
-const clamp = (x, lo, hi) => (x < lo ? lo : x > hi ? hi : x);
-const clamp01 = (x) => clamp(x, 0, 1);
-const hash = (x) => { const s = Math.sin(x * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
-const hash2 = (x, y) => hash(x * 12.9898 + y * 78.233);
-const smooth = (t) => t * t * (3 - 2 * t);
-function vnoise(x, y) {
-  const ix = Math.floor(x), iy = Math.floor(y);
-  const fx = smooth(x - ix), fy = smooth(y - iy);
-  const a = hash2(ix, iy), b = hash2(ix + 1, iy), c = hash2(ix, iy + 1), d = hash2(ix + 1, iy + 1);
-  return a + (b - a) * fx + (c - a) * fy + (a - b - c + d) * fx * fy;
-}
-/** Wrap an angle difference into −π..π. */
-const wrap = (a) => a - TAU * Math.round(a / TAU);
-
-const font = (ctx, weight, size, family = SANS) => { ctx.font = `${weight} ${size}px ${family}`; };
-function text(ctx, s, x, y, { color = '#fff', size = 20, weight = 600, align = 'left', base = 'alphabetic', family = SANS, shadow = null } = {}) {
-  font(ctx, weight, size, family);
-  ctx.textAlign = align;
-  ctx.textBaseline = base;
-  if (shadow) { ctx.fillStyle = shadow; ctx.fillText(s, x + Math.max(1, size / 14), y + Math.max(1, size / 14)); }
-  ctx.fillStyle = color;
-  ctx.fillText(s, x, y);
-}
-function rrect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-const mmss = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-
-/** Where the view points, with the tremor on top: the world shifts, the crosshair does not. */
-const camYaw = (g) => g.view.yaw - (g.wobble ?? 0);
-/** Screen x of a world bearing. */
-const bearingX = (g, a) => MAIN_W / 2 + wrap(a - camYaw(g)) * PX_PER_RAD;
-
-function enemyOnScreen(g) {
-  const e = g.enemy;
-  if (!e) return null;
-  return {
-    e,
-    x: MAIN_W / 2 + e.err / HALF_FOV * (MAIN_W / 2),
-    y: MAIN_H / 2 - (e.elev - g.view.pitch) * PX_PER_RAD,
-    s: e.size * MAIN_W,
-  };
-}
-
-/** The Fly Lab fly, small: the logo's shapes. */
-export function drawFly(ctx, x, y, s, { wings = true } = {}) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(s / 48, s / 48);
-  ctx.translate(-24, -24);
-  if (wings) {
-    ctx.fillStyle = 'rgba(255,255,255,0.6)';
-    ctx.strokeStyle = '#c98a4c';
-    ctx.lineWidth = 1.4;
-    for (const [cx, rot] of [[17, -35], [31, 35]]) {
-      ctx.save(); ctx.translate(cx, 22); ctx.rotate(rot * Math.PI / 180);
-      ctx.beginPath(); ctx.ellipse(0, 0, 9, 15, 0, 0, TAU); ctx.fill(); ctx.stroke();
-      ctx.restore();
-    }
-  }
-  ctx.fillStyle = '#d9731f';
-  ctx.beginPath(); ctx.ellipse(24, 30, 7, 12, 0, 0, TAU); ctx.fill();
-  ctx.strokeStyle = '#a9541a'; ctx.lineWidth = 2.2; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(18, 29); ctx.lineTo(30, 29); ctx.moveTo(18, 34); ctx.lineTo(30, 34); ctx.stroke();
-  ctx.fillStyle = '#e3872f';
-  ctx.beginPath(); ctx.arc(24, 15, 6.5, 0, TAU); ctx.fill();
-  ctx.fillStyle = '#b8321f';
-  ctx.beginPath(); ctx.arc(20.5, 13.5, 3, 0, TAU); ctx.arc(27.5, 13.5, 3, 0, TAU); ctx.fill();
-  ctx.restore();
-}
+/** Games whose screens live in their own painter files: { play, queue, result, icon }. */
+const CUSTOM = { rdr2: RDR2, gow: GOW, gowr: RAGNAROK };
 
 // ============================================================ the main monitor
 
@@ -119,7 +43,8 @@ export function drawGame(ctx, g, t) {
 
 function drawPlay(ctx, g, t) {
   const game = g.match?.game ?? g.game;
-  if (game === 'cs2') drawCS(ctx, g, t);
+  if (CUSTOM[game]) CUSTOM[game].play(ctx, g, t);
+  else if (game === 'cs2') drawCS(ctx, g, t);
   else if (game === 'minecraft') drawMinecraft(ctx, g, t);
   else if (game === 'fortnite') drawFortnite(ctx, g, t);
   else drawLeague(ctx, g, t);
@@ -364,31 +289,6 @@ function drawCSHud(ctx, g, m) {
   drawFeed(ctx, g, { x: MAIN_W - 24, y: 30, cs: true });
 }
 
-/** The kill feed, top right: CS2 outlines its own kills in red. */
-function drawFeed(ctx, g, { x, y, cs = false, left = false }) {
-  const rows = g.feed.filter((f) => g.clock - f.at < 7).slice(-5);
-  rows.forEach((f, k) => {
-    font(ctx, 600, 17, SANS);
-    const s = `${f.killer}  ${cs ? '▬▸' : '⚔'}${f.hs ? ' ◎' : ''}  ${f.victim}`;
-    const w = ctx.measureText(s).width + 26;
-    const bx = left ? x : x - w;
-    const by = y + k * 34;
-    rrect(ctx, bx, by, w, 28, 4);
-    ctx.fillStyle = 'rgba(10,10,12,0.72)'; ctx.fill();
-    if (cs && (f.killer === TAG || f.victim === TAG)) { ctx.strokeStyle = '#d6322a'; ctx.lineWidth = 2; ctx.stroke(); }
-    font(ctx, 600, 17, SANS);
-    ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
-    ctx.fillStyle = f.us ? '#7cc4ff' : '#f2b24c';
-    ctx.fillText(f.killer, bx + 13, by + 15);
-    const kw = ctx.measureText(`${f.killer}  `).width;
-    ctx.fillStyle = '#e8e8e8';
-    ctx.fillText(`${cs ? '▬▸' : '⚔'}${f.hs ? ' ◎' : ''}`, bx + 13 + kw, by + 15);
-    const mw = ctx.measureText(`${cs ? '▬▸' : '⚔'}${f.hs ? ' ◎' : ''}  `).width;
-    ctx.fillStyle = f.us ? '#f2b24c' : '#7cc4ff';
-    ctx.fillText(f.victim, bx + 13 + kw + mw, by + 15);
-  });
-}
-
 // -------------------------------------------------------------- Minecraft
 
 const VW = 320;
@@ -509,18 +409,6 @@ function renderVoxel(g) {
   }
   voxel.ctx.putImageData(voxel.img, 0, 0);
   return voxel.c;
-}
-
-/** Pixel art from rows of characters: each character one colour. */
-function pixels(ctx, rows, palette, x, y, px) {
-  for (let r = 0; r < rows.length; r++) {
-    for (let c = 0; c < rows[r].length; c++) {
-      const col = palette[rows[r][c]];
-      if (!col) continue;
-      ctx.fillStyle = col;
-      ctx.fillRect(Math.round(x + c * px), Math.round(y + r * px), Math.ceil(px), Math.ceil(px));
-    }
-  }
 }
 
 const MOBS = {
@@ -1056,6 +944,7 @@ function drawLeagueHud(ctx, g, m) {
 // ------------------------------------------------------------ between matches
 
 function drawQueue(ctx, g, t) {
+  if (CUSTOM[g.game]?.queue) { CUSTOM[g.game].queue(ctx, g, t); return; }
   const p = g.phaseProgress;
   const d = GAMES[g.game];
   const found = p > 0.78;
@@ -1114,6 +1003,7 @@ function drawQueue(ctx, g, t) {
 function drawResult(ctx, g, t) {
   const r = g.result;
   if (!r) return;
+  if (CUSTOM[r.game]?.result) { CUSTOM[r.game].result(ctx, g, t); return; }
   const k = clamp01(g.t * 2);
   ctx.fillStyle = `rgba(0,0,0,${0.5 * k})`;
   ctx.fillRect(0, 0, MAIN_W, MAIN_H);
@@ -1122,7 +1012,8 @@ function drawResult(ctx, g, t) {
   if (r.game === 'lol') { title = good ? 'VICTORY' : 'DEFEAT'; sub = `${r.kills}/${r.deaths} · ${r.delta > 0 ? '+' : ''}${r.delta} LP`; }
   else if (r.game === 'cs2') { title = good ? 'VICTORY' : 'DEFEAT'; sub = `${r.rounds.us} : ${r.rounds.them} · ${r.delta > 0 ? '+' : ''}${r.delta} rating`; }
   else if (r.game === 'fortnite') { title = good ? '#1 VICTORY' : `#${r.placement}`; sub = `${r.kills} elimination${r.kills === 1 ? '' : 's'}${!good && r.placement <= 3 ? ' · so close' : ''}`; }
-  else { title = good ? 'SUNRISE' : 'YOU LOST YOUR DIAMONDS'; sub = good ? `survived the night · ${r.carried} diamonds home` : `${r.deaths} deaths · back to spawn`; }
+  else if (r.game === 'minecraft') { title = good ? 'SUNRISE' : 'YOU LOST YOUR DIAMONDS'; sub = good ? `survived the night · ${r.carried} diamonds home` : `${r.deaths} deaths · back to spawn`; }
+  else { title = good ? 'MISSION COMPLETE' : 'YOU DIED'; sub = `${r.kills} kills · ${r.deaths} deaths · ${formatRank(r.game, g.career[r.game].rank)}`; }
   const color = good ? (r.game === 'fortnite' ? '#ffd84a' : '#f0d27a') : '#ff5a4a';
   ctx.save();
   ctx.translate(MAIN_W / 2, MAIN_H / 2 - 20);
@@ -1139,15 +1030,11 @@ function drawResult(ctx, g, t) {
   ctx.restore();
 }
 
-function drawCursor(ctx, x, y) {
-  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y + 34); ctx.lineTo(x + 9, y + 26); ctx.lineTo(x + 16, y + 40); ctx.lineTo(x + 21, y + 37); ctx.lineTo(x + 14, y + 24); ctx.lineTo(x + 25, y + 24); ctx.closePath(); ctx.fill(); ctx.stroke();
-}
-
 /** Generic desktop icons for the four games: a sword, a grass block, a pickaxe, a crosshair. */
 function drawGameIcon(ctx, id, x, y, s) {
+  if (CUSTOM[id]?.icon) { CUSTOM[id].icon(ctx, x, y, s); return; }
   rrect(ctx, x, y, s, s, s * 0.2);
-  ctx.fillStyle = { lol: '#0f2a3a', minecraft: '#5a3a1f', fortnite: '#4a2a9a', cs2: '#2a2d33' }[id]; ctx.fill();
+  ctx.fillStyle = { lol: '#0f2a3a', minecraft: '#5a3a1f', fortnite: '#4a2a9a', cs2: '#2a2d33', rdr2: '#5a1a14', gow: '#1f2a33', gowr: '#16283f' }[id] ?? '#333'; ctx.fill();
   ctx.save(); ctx.translate(x + s / 2, y + s / 2);
   if (id === 'lol') {
     ctx.strokeStyle = '#c8aa6e'; ctx.lineWidth = s * 0.08; ctx.beginPath(); ctx.moveTo(-s * 0.25, s * 0.25); ctx.lineTo(s * 0.25, -s * 0.25); ctx.stroke();
@@ -1159,10 +1046,20 @@ function drawGameIcon(ctx, id, x, y, s) {
     ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = s * 0.08;
     ctx.beginPath(); ctx.arc(0, -s * 0.05, s * 0.25, Math.PI * 1.1, Math.PI * 1.9); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(0, -s * 0.28); ctx.lineTo(0, s * 0.28); ctx.stroke();
-  } else {
+  } else if (id === 'cs2') {
     ctx.strokeStyle = '#4dff6a'; ctx.lineWidth = s * 0.06;
     ctx.beginPath(); ctx.arc(0, 0, s * 0.22, 0, TAU); ctx.stroke();
     for (const [a, b] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) { ctx.beginPath(); ctx.moveTo(a * s * 0.12, b * s * 0.12); ctx.lineTo(a * s * 0.32, b * s * 0.32); ctx.stroke(); }
+  } else if (id === 'rdr2') {
+    // a red "R"-less badge: a revolver cylinder
+    ctx.fillStyle = '#e8d6b0'; ctx.beginPath(); ctx.arc(0, 0, s * 0.26, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#5a1a14';
+    for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; ctx.beginPath(); ctx.arc(Math.cos(a) * s * 0.14, Math.sin(a) * s * 0.14, s * 0.05, 0, TAU); ctx.fill(); }
+  } else {
+    // an axe head
+    ctx.fillStyle = id === 'gowr' ? '#e0703a' : '#9fc7e0';
+    ctx.beginPath(); ctx.moveTo(-s * 0.05, -s * 0.3); ctx.lineTo(s * 0.26, -s * 0.22); ctx.quadraticCurveTo(s * 0.16, 0, s * 0.26, s * 0.12); ctx.lineTo(-s * 0.05, -s * 0.02); ctx.fill();
+    ctx.fillStyle = '#6b4a2a'; ctx.fillRect(-s * 0.1, -s * 0.32, s * 0.07, s * 0.62);
   }
   ctx.restore();
 }
@@ -1176,7 +1073,7 @@ function drawDesktop(ctx, g, t, { cursor = null, focus = null } = {}) {
   // icons down the left
   const icons = [...GAME_ORDER.map((id) => ({ id, label: GAMES[id].short })), { id: null, label: 'homework_final_v3.docx' }, { id: null, label: 'Recycle Bin' }];
   icons.forEach((ic, k) => {
-    const x = 40, y = 40 + k * 104;
+    const x = 40 + Math.floor(k / 5) * 112, y = 40 + (k % 5) * 104;
     if (focus === ic.id && ic.id) { rrect(ctx, x - 12, y - 8, 104, 100, 8); ctx.fillStyle = 'rgba(120,160,255,0.3)'; ctx.fill(); }
     if (ic.id) drawGameIcon(ctx, ic.id, x + 10, y, 60);
     else { ctx.fillStyle = k === 4 ? '#3a78d8' : '#8a8f98'; ctx.fillRect(x + 20, y + 4, 40, 52); }
@@ -1184,7 +1081,7 @@ function drawDesktop(ctx, g, t, { cursor = null, focus = null } = {}) {
   });
   // the taskbar
   ctx.fillStyle = 'rgba(12,10,24,0.85)'; ctx.fillRect(0, MAIN_H - 48, MAIN_W, 48);
-  GAME_ORDER.forEach((id, k) => drawGameIcon(ctx, id, MAIN_W / 2 - 110 + k * 56, MAIN_H - 42, 36));
+  GAME_ORDER.forEach((id, k) => drawGameIcon(ctx, id, MAIN_W / 2 - GAME_ORDER.length * 28 + k * 56, MAIN_H - 42, 36));
   const clock = new Date(2026, 8, 25, 23, 12 + Math.floor(g.clock / 60));
   text(ctx, `${String(clock.getHours()).padStart(2, '0')}:${String(clock.getMinutes()).padStart(2, '0')}`, MAIN_W - 20, MAIN_H - 18, { size: 16, weight: 600, align: 'right', color: '#ddd' });
   if (cursor) drawCursor(ctx, cursor[0], cursor[1]);
@@ -1224,7 +1121,7 @@ function drawSwitching(ctx, g, t) {
   const p = g.phaseProgress;
   const to = g.nextGame ?? g.game;
   const k = GAME_ORDER.indexOf(to);
-  const target = [80, 40 + k * 104 + 30];
+  const target = [80 + Math.floor(k / 5) * 112, 40 + (k % 5) * 104 + 30];
   const move = smooth(clamp01(p / 0.5));
   const cursor = [MAIN_W / 2 + (target[0] - MAIN_W / 2) * move, MAIN_H / 2 + (target[1] - MAIN_H / 2) * move];
   drawDesktop(ctx, g, t, { cursor, focus: p > 0.45 ? to : null });
@@ -1365,6 +1262,19 @@ function drawScoreboard(ctx, g, top) {
     return;
   }
   const game = m.game;
+  if (GAMES[game].solo) {
+    // a story game: nobody else is playing; the friends in voice are watching
+    text(ctx, `${GAMES[game].short.toUpperCase()} · STORY`, 20, top + 30, { size: 15, weight: 800, color: '#8a8f98' });
+    text(ctx, `${m.team.length - 1} watching`, W - 20, top + 30, { size: 14, weight: 700, align: 'right', color: '#23a55a' });
+    const rows = [['kills', m.kills], ['deaths', m.deaths], ['time', mmss(m.t * 12)], [GAMES[game].id === 'rdr2' ? 'honor' : 'progress', formatRank(game, g.career[game].rank)]];
+    rows.forEach(([label, v], k) => {
+      const y = top + 62 + k * 48;
+      ctx.fillStyle = k % 2 ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.06)'; ctx.fillRect(12, y, W - 24, 40);
+      text(ctx, label, 26, y + 26, { size: 15, weight: 600, color: '#b5bac1' });
+      text(ctx, String(v), W - 26, y + 27, { size: 17, weight: 800, align: 'right', color: k === 1 && m.deaths > m.kills ? '#ff8a7a' : '#f2f3f5', family: MONO });
+    });
+    return;
+  }
   const title = game === 'cs2' ? `SCOREBOARD · ROUND ${m.round}` : game === 'fortnite' ? `SQUAD · ${m.players} LEFT` : game === 'minecraft' ? 'SERVER · NIGHT ' + Math.round(m.night * 100) + '%' : `SCOREBOARD · ${mmss(m.t * 20 + 180)}`;
   text(ctx, title, 20, top + 30, { size: 15, weight: 800, color: '#8a8f98' });
   if (game === 'cs2') text(ctx, `${m.rounds.us} : ${m.rounds.them}`, W - 20, top + 30, { size: 18, weight: 800, align: 'right', color: '#f2f3f5' });

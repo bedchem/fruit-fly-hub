@@ -9,7 +9,10 @@
  * makers has anything to do with this page.
  */
 
-export const GAME_ORDER = ['lol', 'minecraft', 'fortnite', 'cs2'];
+export const GAME_ORDER = ['lol', 'minecraft', 'fortnite', 'cs2', 'rdr2', 'gow', 'gowr'];
+
+/** Games it plays alone, story missions rather than matches: friends only watch, in voice. */
+export const SOLO = new Set(['rdr2', 'gow', 'gowr']);
 
 /**
  * `seconds` is one match in real time, compressed. `loom` is the chance an
@@ -108,6 +111,78 @@ export const GAMES = {
     calmTalk: ['gg', 'nt', 'wp'],
     cockyTalk: ['ez', 'one tap', 'headshot machine'],
   },
+  rdr2: {
+    id: 'rdr2',
+    name: 'Red Dead Redemption 2',
+    short: 'RDR2',
+    maker: 'Rockstar Games',
+    solo: true,
+    seconds: 88,
+    calm: [3.2, 5.8],
+    loom: 0.28,
+    ttk: [1.6, 2.4],
+    hp: [0.45, 0.75],
+    // dusty sunset gold on the fly's face
+    glow: '#d98a3a',
+    accent: '#c9a36a',
+    enemyKind: 'gunman',
+    loomKind: 'ambush',
+    ally: ['mothman', 'BeeKay', 'larva_main'],
+    enemy: ["O'Driscoll", 'Lemoyne Raider', 'Pinkerton', 'Murfree', 'Bounty'],
+    flame: ['bro use dead eye', 'you shot the horse??', 'honor going DOWN', 'why are you running from the law', 'just talk to him bro'],
+    praise: ['CLEAN', 'dead eye diff', 'cowboy fly', 'yeehaw'],
+    rage: ['THE HORSE RAN AWAY', 'WHY IS THE LAW HERE', 'I PRESSED THE BUTTON', 'MY HONOR', 'DEAD EYE DIDNT WORK'],
+    calmTalk: ['beautiful game', 'just riding', 'the sunset tho'],
+    cockyTalk: ['fastest gun in the west', 'quickdraw god', 'yeehaw'],
+  },
+  gow: {
+    id: 'gow',
+    name: 'God of War',
+    short: 'God of War',
+    maker: 'Santa Monica Studio',
+    solo: true,
+    seconds: 86,
+    calm: [2.8, 5.0],
+    loom: 0.34,
+    ttk: [1.8, 2.7],
+    hp: [0.6, 0.95],
+    // Midgard: cold green, and the axe's frost
+    glow: '#6fa3c7',
+    accent: '#c8b27a',
+    enemyKind: 'draugr',
+    loomKind: 'troll',
+    ally: ['mothman', 'BeeKay', 'larva_main'],
+    enemy: ['Draugr', 'Revenant', 'Wulver', 'Hel-Walker', 'Troll'],
+    flame: ['dodge!!', 'throw the axe', 'you forgot the runic', 'the boy is carrying you', 'parry bro'],
+    praise: ['axe throw diff', 'spartan rage W', 'clean parry', 'BOY'],
+    rage: ['THE AXE DID NOT COME BACK', 'HOW DID HE PARRY THAT', 'I DODGED', 'WHO PUT A TROLL HERE', 'RAGE WAS FULL'],
+    calmTalk: ['that was sick', 'the boat part is so chill', 'lore'],
+    cockyTalk: ['god of war fr', 'spartan fly', 'give me god of war difficulty'],
+  },
+  gowr: {
+    id: 'gowr',
+    name: 'God of War Ragnarök',
+    short: 'Ragnarök',
+    maker: 'Santa Monica Studio',
+    solo: true,
+    seconds: 90,
+    calm: [2.6, 4.8],
+    loom: 0.38,
+    ttk: [1.6, 2.5],
+    hp: [0.65, 1.0],
+    // Fimbulwinter: blue-white, and the blades' fire
+    glow: '#8fb4e8',
+    accent: '#e0703a',
+    enemyKind: 'einherjar',
+    loomKind: 'berserker',
+    ally: ['mothman', 'BeeKay', 'larva_main'],
+    enemy: ['Einherjar', 'Berserker', 'Grendel', 'Stalker', 'Dreki'],
+    flame: ['use the blades', 'shield bash it', 'bro the berserker', 'you had rage', 'parry the red ones'],
+    praise: ['blades of chaos W', 'shield god', 'that combo', 'RAGNARÖK'],
+    rage: ['THE RED RING', 'I BLOCKED IT', 'BERSERKER AGAIN', 'WHY DOES IT HAVE TWO HEALTH BARS', 'FIMBULWINTER MORE LIKE FIMBULLOSER'],
+    calmTalk: ['that ending tho', 'freya W', 'the music'],
+    cockyTalk: ['ragnarök? more like ragnar-easy', 'no damage run', 'valhalla ready'],
+  },
 };
 
 /** CS2 plays rounds inside the match; first to this many takes it. */
@@ -125,7 +200,7 @@ const DIVISIONS = ['IV', 'III', 'II', 'I'];
  * division. CS2: a rating in the thousands. Fortnite: points. Minecraft:
  * diamonds kept.
  */
-export const START_RANK = { lol: 843, minecraft: 12, fortnite: 1200, cs2: 8450 };
+export const START_RANK = { lol: 843, minecraft: 12, fortnite: 1200, cs2: 8450, rdr2: 12, gow: 4200, gowr: 2600 };
 
 export function formatRank(id, v) {
   if (id === 'lol') {
@@ -135,6 +210,11 @@ export function formatRank(id, v) {
   }
   if (id === 'cs2') return `${Math.round(v).toLocaleString('en-US')} rating`;
   if (id === 'fortnite') return `${Math.round(v).toLocaleString('en-US')} pts`;
+  // RDR2: honour, from −100 (outlaw) to +100
+  if (id === 'rdr2') return `Honor ${v >= 0 ? '+' : '−'}${Math.abs(Math.round(v))}`;
+  // God of War: experience, a level every thousand
+  if (id === 'gow') return `Level ${Math.floor(v / 1000) + 1} · ${Math.round(v % 1000)} XP`;
+  if (id === 'gowr') return `${Math.round(v).toLocaleString('en-US')} hacksilver`;
   return `${Math.round(v)} diamonds`;
 }
 
@@ -144,6 +224,10 @@ export function rankDelta(id, m, rng) {
   if (id === 'lol') return m.won ? 18 + Math.round(r * 8) : -(15 + Math.round(r * 7));
   if (id === 'cs2') return m.won ? 120 + Math.round(r * 110) : -(100 + Math.round(r * 120));
   if (id === 'fortnite') return Math.round((100 - m.placement) * 1.6) - 60;
+  // a clean mission raises honour; a massacre of a failed one lowers it
+  if (id === 'rdr2') return m.won ? 4 + Math.round(r * 6) : -(3 + Math.round(r * 5));
+  if (id === 'gow') return m.won ? 160 + Math.round(r * 120) + m.kills * 12 : 20 + m.kills * 6;
+  if (id === 'gowr') return m.won ? 350 + Math.round(r * 300) : 40 + m.kills * 10;
   // Minecraft: what it carried home at sunrise; dying on the way drops it all
   return m.won ? m.carried : -Math.min(6, 1 + m.deaths);
 }

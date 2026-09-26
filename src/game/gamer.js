@@ -77,6 +77,9 @@ const CALLOUTS = {
   minecraft: ['found iron', 'its getting dark', 'bring torches', 'where r u', 'skeleton on the hill'],
   fortnite: ['storm is closing', 'one shot him', 'loot the house', 'third party', 'bus leaving'],
   cs2: ['1 B', 'two long', 'eco', 'he is one', 'rotate', 'smoke mid'],
+  rdr2: ['behind the wagon', 'lasso him', 'the horse is right there', 'pinkertons incoming', 'go to camp'],
+  gow: ['behind you', 'the boy is shooting', 'throw it and recall', 'draugr from the left', 'heal stone'],
+  gowr: ['berserker spawning', 'switch to the blades', 'shield up', 'freya help', 'on your right'],
 };
 
 export class Gamer {
@@ -471,7 +474,7 @@ export class Gamer {
     const window = e.size * HALF_FOV * 0.5;
     const close = Math.abs(e.err) < window * 3;
     const on = Math.abs(e.err) < window && e.grow > 0.25 && this.flash < 0.6;
-    const every = this.game === 'minecraft' ? 0.42 : this.game === 'lol' ? 0.55 : 0.11;
+    const every = { minecraft: 0.42, lol: 0.55, rdr2: 0.38, gow: 0.5, gowr: 0.42 }[this.game] ?? 0.11;
     this.firing = close ? 1 : 0;
     if (close && this.clock - this.shotAt > every) {
       this.shotAt = this.clock;
@@ -504,7 +507,7 @@ export class Gamer {
     const e = this.enemy;
     const m = this.match;
     // only the shooters have heads to aim for
-    const hs = (this.game === 'cs2' || this.game === 'fortnite')
+    const hs = (this.game === 'cs2' || this.game === 'fortnite' || this.game === 'rdr2')
       && Math.abs(e.err) < e.size * HALF_FOV * 0.25 && this.rng() < 0.3 + 0.4 * this.track;
     m.kills += 1;
     m.team[0].k += 1;
