@@ -642,7 +642,7 @@ function drawFortnite(ctx, g, t) {
 function drawToon(ctx, { x, y, s, e }, g) {
   const h = s * 1.5, w = s * 0.55;
   const top = y - h * 0.45 - (e.loom ? (1 - e.grow) * 180 : 0);
-  const hue = (e.name.length * 47) % 360;
+  const hue = ((e.name ?? '').length * 47) % 360;
   ctx.save();
   if (e.hitFlash > 0) ctx.filter = `brightness(${1 + e.hitFlash * 0.8})`;
   ctx.fillStyle = `hsl(${hue}, 55%, 30%)`;
@@ -1030,7 +1030,7 @@ function drawResult(ctx, g, t) {
   ctx.restore();
 }
 
-/** Generic desktop icons for the four games: a sword, a grass block, a pickaxe, a crosshair. */
+/** Generic desktop icons: a sword, a grass block, a pickaxe, a crosshair; the games in painters/ bring their own. */
 function drawGameIcon(ctx, id, x, y, s) {
   if (CUSTOM[id]?.icon) { CUSTOM[id].icon(ctx, x, y, s); return; }
   rrect(ctx, x, y, s, s, s * 0.2);

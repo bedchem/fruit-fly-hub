@@ -37,7 +37,7 @@ function pose() {
   if (GAME_ORDER.includes(head)) {
     if (state === 'queue') { g.game = head; g.startQueue(); run(g, 2.4); }
     else if (state === 'calm') { g.game = head; g.startMatch(); g.match.t = 25; g.match.calmFor = 99; run(g, 1.5); }
-    else if (state === 'loom') fight(head, { loom: true, kind: LOOM[head], name: LOOM[head] === 'creeper' ? 'Creeper' : g.enemy?.name, grow: 0, t: 0 });
+    else if (state === 'loom') fight(head, { loom: true, kind: LOOM[head], ...(LOOM[head] === 'creeper' ? { name: 'Creeper' } : {}), grow: 0, t: 0 });
     else if (state === 'death') { fight(head); g.die('shot'); run(g, 1.4); }
     else if (state === 'result' || state === 'lost') {
       fight(head);

@@ -1,5 +1,5 @@
 /**
- * The four games on the fly's monitor, as data: what each is called, how a
+ * The seven games on the fly's monitor, as data: what each is called, how a
  * match of it runs, what counts as a rank, who is on the team and what they
  * say. The rules of play live in gamer.js and the pictures in
  * scene/gamePainters.js; nothing here is drawn or simulated.

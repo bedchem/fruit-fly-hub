@@ -145,7 +145,7 @@ With TikTok allowed, the doomscroll feed shows only Sabrina Carpenter edits, eve
 
 ## The gamer
 
-The fifth experiment, at `/game/`. The fly sits in a gaming chair with a headset on and plays **League of Legends, Minecraft, Fortnite and CS2** in turn, on a curved monitor, with a vertical one beside it for the team's voice chat and the scoreboard, and a PC full of RGB. Its right foreleg is on the mouse. Nobody controls it. The games are painted procedurally in `src/scene/gamePainters.js`; no footage, logo or asset of any of them is used.
+The fifth experiment, at `/game/`. The fly sits in a gaming chair with a headset on and plays **League of Legends, Minecraft, Fortnite, CS2, Red Dead Redemption 2, God of War and God of War Ragnarök** in turn, on a curved monitor, with a vertical one beside it for the team's voice chat and the scoreboard, and a PC full of RGB. Its right foreleg is on the mouse. Nobody controls it. The games are painted procedurally in `src/scene/gamePainters.js` and, one file per game, `src/scene/painters/`; no footage, logo or asset of any of them is used.
 
 - **It aims with its reflexes.** The in-game view turning is wide-field motion on the horizontal motion detectors (T4a/T5a against T4b/T5b). The turn is read back from cells the connectome makes direction-selective, found at start-up by the trading desk's probe, now parametrised.
 - **It tracks like it courts.** An enemy drives LC10a and LC11, the small-object cells. What comes back downstream sets how fast the crosshair gets onto the target. The probe finds the anterior optic tubercle (AOTU008, AOTU050) among the readers, which is where LC10 projects in a real fly.
@@ -250,7 +250,7 @@ src/
   scene/       Three.js scenes (casino, bar, trading desk, doomscroll, gaming setup, coder's room), fly rig, props, cameras
   game/        deterministic state machines and decision policies: machine.js, bar.js,
                trader.js and the seeded market it trades, market.js, scroll.js, and gamer.js
-               with the four games it plays, games.js, and coder.js with the POKYH
+               with the seven games it plays, games.js, and coder.js with the POKYH
                code it types, pokyhCode.js
   neural/      connectome loading, rate model, learning, drug pharmacology, visual scope
   audio/       synthesized Web Audio feedback; no sampled soundtrack
@@ -274,7 +274,7 @@ Before deploying, replace the remaining host and privacy-policy placeholders in 
 - **Connectome:** [MaleCNS v1.0](https://male-cns.janelia.org/) by FlyEM/HHMI Janelia, University of Cambridge, MRC LMB, and Google Research — CC BY 4.0.
 - **Fruit fly model:** [Drosophila adult fruit fly CT scan](https://sketchfab.com/3d-models/drosophila-adult-fruit-fly-ct-scan-ad29b897bd2b4e27bb04ab9d31baa117) by etainproject — CC BY 4.0.
 - **Slot-machine model:** [Pillar Slots](https://sketchfab.com/3d-models/pillar-slots-91e255e5a95745f4857607b388421ee1) by local.yany — CC BY 4.0.
-- **Games:** League of Legends (Riot Games), Minecraft (Mojang Studios / Microsoft), Fortnite (Epic Games) and Counter-Strike 2 (Valve) are named for what the fly plays. Their screens are drawn procedurally by this project, and Fly Lab is not affiliated with any of them.
+- **Games:** League of Legends (Riot Games), Minecraft (Mojang Studios / Microsoft), Fortnite (Epic Games), Counter-Strike 2 (Valve), Red Dead Redemption 2 (Rockstar Games), God of War and God of War Ragnarök (Sony Interactive Entertainment / Santa Monica Studio) are named for what the fly plays. Their screens are drawn procedurally by this project, and Fly Lab is not affiliated with any of them.
 - **Energy drink:** [Monster Ultra White](https://sketchfab.com/3d-models/monster-ultra-white-542dc45df0774f41ab67d96bf99b332f) by prajwalk12 — Sketchfab Standard license. Monster Energy is a trademark of Monster Energy Company; no affiliation.
 - **Coder's room props:** plants, desk lamp, shelf, books and wall clock from [Poly Haven](https://polyhaven.com), CC0.
 - **POKYH code:** from [bedchem/pokyh-frontend](https://github.com/bedchem/pokyh-frontend), by BedChem. The laptop is drawn generically; no affiliation with Apple.

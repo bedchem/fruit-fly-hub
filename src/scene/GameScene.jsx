@@ -851,6 +851,8 @@ function Headset({ gamer }) {
 /** Hexagon light panels on the wall, a strip behind the desk, a neon sign, a shelf. */
 function Room({ gamer }) {
   const hexes = useRef();
+  // on a portrait screen the camera frames the wall where the page title sits
+  const portrait = useThree((s) => s.size.width < s.size.height);
   const c = useMemo(() => new THREE.Color(), []);
   const HEX = useMemo(() => {
     // a small honeycomb on the wall above the monitors
@@ -918,7 +920,7 @@ function Room({ gamer }) {
         <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
       {/* the neon sign, over the vertical monitor */}
-      <mesh position={[WALL_X + 0.01, 2.3, 0.72]} rotation={[0, Math.PI / 2, 0]}>
+      <mesh position={[WALL_X + 0.01, 2.3, 0.72]} rotation={[0, Math.PI / 2, 0]} visible={!portrait}>
         <planeGeometry args={[0.72, 0.18]} />
         <meshBasicMaterial map={neon} transparent toneMapped={false} />
       </mesh>

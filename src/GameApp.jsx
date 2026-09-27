@@ -32,7 +32,7 @@ function readSeed() {
   return 1 + Math.floor(Math.random() * 1e6);
 }
 
-/** The gaming setup: the fly plays four games, and rages. One of the Fly Lab experiments. */
+/** The gaming setup: the fly plays seven games, and rages. One of the Fly Lab experiments. */
 export default function GameApp() {
   const gamerRef = useRef(null);
   const eventRef = useRef(() => {});

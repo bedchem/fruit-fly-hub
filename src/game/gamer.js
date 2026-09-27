@@ -1,8 +1,9 @@
 /**
  * The fly at its gaming setup, as one deterministic state machine.
  *
- * It plays four games in turn — League of Legends, Minecraft, Fortnite and
- * CS2 — with its right foreleg on the mouse. Nothing here touches React or
+ * It plays seven games in turn — League of Legends, Minecraft, Fortnite, CS2,
+ * Red Dead Redemption 2, God of War and Ragnarök — with its right foreleg on
+ * the mouse. Nothing here touches React or
  * three.js: the scene reads the continuous values (where the crosshair is,
  * how fast the view turns, the foreleg, the slam), the painters read the
  * match, and tools/sim-game.mjs runs the same class headless against the same

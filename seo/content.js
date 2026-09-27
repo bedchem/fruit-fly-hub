@@ -59,7 +59,7 @@ export const PAGES = [
   {
     file: 'game/index.html',
     path: '/game/',
-    title: 'Fruit Fly Gamer: a real fly brain plays League, Minecraft, Fortnite and CS2 | Fly Lab',
+    title: 'Fruit Fly Gamer: a real fly brain plays League, Minecraft, CS2, Red Dead and God of War | Fly Lab',
     description:
       'A real fruit fly CT scan games on a curved monitor with a headset on: the MaleCNS connectome aims with its motion '
       + 'detectors, flinches at creepers through its giant fibre, learns which game hurts it — and rage-quits.',
