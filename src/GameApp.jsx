@@ -76,6 +76,13 @@ export default function GameApp() {
       case 'defeat': sound.defeat(); break;
       case 'rageQuit': sound.rageQuit(); break;
       case 'start': case 'accept': sound.queuePop(); break;
+      case 'sip': sound.burst({ freq: 700, q: 1.5, gain: 0.04, dur: 0.12, decay: 2 }); break;
+      case 'crush': sound.crunch(); sound.burst({ freq: 2600, q: 2, gain: 0.08, dur: 0.08 }); break;
+      case 'canDown': sound.burst({ freq: 1400, q: 3, gain: 0.05, dur: 0.04 }); break;
+      case 'tap': sound.tone({ freq: 90, to: 60, dur: 0.12, gain: 0.08 + (d?.strength ?? 0.3) * 0.12, type: 'sine' }); break;
+      case 'clatter': sound.clack(10); break;
+      case 'pat': sound.burst({ freq: 900, q: 1, gain: 0.03, dur: 0.05 }); break;
+      case 'click': sound.click(); break;
       case 'chat': if (d?.kind === 'me') sound.clack(Math.min(14, 4 + (d.text?.length ?? 0) / 2)); else sound.ping(); break;
       default: break;
     }
@@ -148,9 +155,12 @@ export default function GameApp() {
             <a href="https://sketchfab.com/3d-models/drosophila-adult-fruit-fly-ct-scan-ad29b897bd2b4e27bb04ab9d31baa117" target="_blank" rel="noopener">
               fruit fly CT scan
             </a>
-            {' '}by etainproject. League of Legends, Minecraft, Fortnite, Counter-Strike 2, Red Dead Redemption 2 and
+            {' '}by etainproject. Energy drink:{' '}
+            <a href="https://sketchfab.com/3d-models/monster-ultra-white-542dc45df0774f41ab67d96bf99b332f" target="_blank" rel="noopener">Monster Ultra White</a>
+            {' '}by prajwalk12 (Sketchfab Standard license). League of Legends, Minecraft, Fortnite, Counter-Strike 2, Red Dead Redemption 2 and
             God of War belong to Riot Games, Mojang Studios / Microsoft, Epic Games, Valve, Rockstar Games and Sony
-            Interactive Entertainment; the screens here are drawn by us, and none of them is affiliated with this page.
+            Interactive Entertainment, and Monster Energy to Monster Energy Company; the screens here are drawn by us,
+            and none of them is affiliated with this page.
           </p>
           <a className="source" href={site.repository} target="_blank" rel="noopener">
             <GitHubIcon /> Open source on GitHub

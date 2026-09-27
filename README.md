@@ -275,6 +275,7 @@ Before deploying, replace the remaining host and privacy-policy placeholders in 
 - **Fruit fly model:** [Drosophila adult fruit fly CT scan](https://sketchfab.com/3d-models/drosophila-adult-fruit-fly-ct-scan-ad29b897bd2b4e27bb04ab9d31baa117) by etainproject — CC BY 4.0.
 - **Slot-machine model:** [Pillar Slots](https://sketchfab.com/3d-models/pillar-slots-91e255e5a95745f4857607b388421ee1) by local.yany — CC BY 4.0.
 - **Games:** League of Legends (Riot Games), Minecraft (Mojang Studios / Microsoft), Fortnite (Epic Games) and Counter-Strike 2 (Valve) are named for what the fly plays. Their screens are drawn procedurally by this project, and Fly Lab is not affiliated with any of them.
+- **Energy drink:** [Monster Ultra White](https://sketchfab.com/3d-models/monster-ultra-white-542dc45df0774f41ab67d96bf99b332f) by prajwalk12 — Sketchfab Standard license. Monster Energy is a trademark of Monster Energy Company; no affiliation.
 - **Coder's room props:** plants, desk lamp, shelf, books and wall clock from [Poly Haven](https://polyhaven.com), CC0.
 - **POKYH code:** from [bedchem/pokyh-frontend](https://github.com/bedchem/pokyh-frontend), by BedChem. The laptop is drawn generically; no affiliation with Apple.
 - **Project authors:** [ryhox](https://github.com/ryhox), [Nexor](https://github.com/plattnericus) and [peramanu](https://github.com/peramanu).

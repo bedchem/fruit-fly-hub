@@ -5,24 +5,30 @@
  * The curved monitor in front of it and the vertical one on its left are
  * canvas textures painted by gamePainters.js; the curved one is also the key
  * light on the fly, in the colours of whatever game is on. The right foreleg
- * is on the mouse — the mouse follows the aim — and it comes up off it to
- * slam the desk. The headset rides in the fly's head slot, so it turns with
- * the head.
+ * is on the mouse — the mouse follows the aim — and leaves it for whatever
+ * the gestures (src/game/gamerGestures.js) send it to: the energy drink, the
+ * headset, its own eye, the desk. The headset rides in the fly's head slot,
+ * so it turns with the head.
  */
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree, advance } from '@react-three/fiber';
-import { ContactShadows, AdaptiveDpr, PerspectiveCamera, RoundedBox } from '@react-three/drei';
+import { ContactShadows, AdaptiveDpr, PerspectiveCamera, RoundedBox, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { Fly } from './Fly.jsx';
 import { StudioProbe } from './BarScene.jsx';
 import { flyToWorld } from './layout.js';
-import { HAND } from './flyRig.js';
+import { HAND, NECK } from './flyRig.js';
+import { MOUTH_LOCAL } from './barLayout.js';
 import {
-  DESK, SCREEN, SIDE, MAT, KEYBOARD, MOUSE, CAN, PC, CHAIR, WALL_X, HEADSET,
-  SLAM_TOP, SLAM_DESK, SIDE_GAZE, DESK_GAZE, GAME_CAMERA, mousePoint, onScreen,
+  DESK, SCREEN, SIDE, MAT, KEYBOARD, MOUSE, CAN, CAN_LOGO_AZIMUTH, PC, CHAIR, WALL_X, HEADSET, HEAD_POINTS, HUD_GLANCE,
+  SIDE_GAZE, DESK_GAZE, DOWN_GAZE, UP_GAZE, GAME_CAMERA, onScreen,
 } from './gameLayout.js';
+import {
+  canPose, keyboardPose, resolveAnchors, handTarget, mouseAnchor, posedToWorld, CRUSHED_HEIGHT,
+} from './gameGestures.js';
+import { N_ANCHORS } from '../game/gamerGestures.js';
 import { drawGame, drawSide, drawFly, MAIN_W, MAIN_H, SIDE_W, SIDE_H } from './gamePainters.js';
-import { PHASES, HALF_FOV, SLAM_HIT } from '../game/gamer.js';
+import { PHASES, HALF_FOV } from '../game/gamer.js';
 import { GAMES } from '../game/games.js';
 import { sound } from '../audio/audio.js';
 
@@ -33,9 +39,8 @@ const BG = new THREE.Color('#0e0c16');
 const RAGE = new THREE.Color('#ff2a1a');
 const DESKTOP = new THREE.Color('#8a5cff');
 
-const lerp3 = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
-const easeOut = (t) => 1 - (1 - t) * (1 - t);
-const easeIn = (t) => t * t * t;
+const clamp = (x, lo, hi) => (x < lo ? lo : x > hi ? hi : x);
+const UP = new THREE.Vector3(0, 1, 0);
 
 /** The colour the RGB is showing at a point along the loop, 0..1, at time t. */
 function rgbAt(u, t, g, out) {
@@ -49,55 +54,127 @@ function rgbAt(u, t, g, out) {
 
 // ------------------------------------------------------------------ the rig
 
-function Rig({ gamer, gripTargetRef, dopamineRef, lookRef, onTick }) {
+/**
+ * Where the head is aimed. The eyes jump (saccades) and settle rather than
+ * slide: a stiff, slightly under-damped spring on the point it looks at, so
+ * a new target is reached in a tenth of a second with a small overshoot, and
+ * a moving one (the enemy) is followed a hair behind.
+ */
+const GAZE_W = 24;
+const GAZE_ZETA = 0.66;
+
+function gazePoint(g, s, out) {
+  const at = g.gestures.gaze.at;
+  let p;
+  switch (at) {
+    case 'enemy': {
+      const e = g.enemy;
+      p = e ? onScreen(clamp(e.err / HALF_FOV, -0.95, 0.95), -0.05 + clamp(e.elev ?? 0, -0.1, 0.1)) : onScreen(0, -0.08);
+      break;
+    }
+    case 'hud': { const [u, v] = HUD_GLANCE[g.match?.game ?? g.game] ?? [0.8, -0.7]; p = onScreen(u, v); break; }
+    case 'chat': p = SIDE_GAZE; break;
+    case 'can': p = s.can.top; break;
+    case 'desk': p = DESK_GAZE; break;
+    case 'down': p = DOWN_GAZE; break;
+    case 'up': p = UP_GAZE; break;
+    case 'mouse': p = s.mouse; break;
+    case 'kb': p = s.kb.center; break;
+    default: p = onScreen(g.gestures.gaze.u, g.gestures.gaze.v); break;
+  }
+  out.set(p[0], p[1], p[2]);
+  return out;
+}
+
+function Rig({ gamer, gripTargetRef, dopamineRef, lookRef, canRef, kbRef, headPoints, onTick }) {
   const { camera } = useThree();
   const base = useMemo(() => new THREE.Vector3(...GAME_CAMERA.position), []);
   const look = useMemo(() => new THREE.Vector3(...GAME_CAMERA.target), []);
   const uiClock = useRef(0);
-  const glance = useRef({ until: 0, chat: 0 });
   const shake = useRef(0);
   const lastPhase = useRef(gamer.phase);
+  // everything the foreleg can be sent to, resolved every frame into one flat array
+  const s = useMemo(() => {
+    const st = {
+      anchors: new Float64Array(N_ANCHORS * 3),
+      target: [0, 0, 0],
+      mouse: [0, 0, 0],
+      can: canRef.current,
+      kb: kbRef.current,
+      src: { mouse: null, can: null, cup: headPoints.world[0], eye: headPoints.world[1], face: headPoints.world[2], kb: null, body: null },
+      gaze: { p: new THREE.Vector3(), v: new THREE.Vector3(), want: new THREE.Vector3(), ready: false },
+      neck: [0, 0, 0],
+      d: new THREE.Vector3(),
+      side: new THREE.Vector3(),
+      lift: new THREE.Vector3(),
+      out: [0, 0, 0],
+      t: 0,
+    };
+    st.src.mouse = st.mouse;
+    st.src.can = st.can.grip;
+    st.src.kb = st.kb.corner;
+    return st;
+  }, [canRef, kbRef, headPoints]);
+
+  // the foreleg's target: the gesture's weighted anchors, plus the shake of a held stretch
+  const aim = useMemo(() => () => {
+    const g = gamer;
+    resolveAnchors(s.src, s.anchors);
+    handTarget(g.gestures.hand, s.anchors, s.target);
+    const tr = g.gestures.ch.tremble;
+    if (tr > 0) {
+      s.target[0] += Math.sin(s.t * 47) * 0.004 * tr;
+      s.target[1] += Math.sin(s.t * 39 + 1) * 0.005 * tr;
+      s.target[2] += Math.sin(s.t * 53 + 2) * 0.003 * tr;
+    }
+  }, [gamer, s]);
+  // Fly calls this once it has turned the head, so the cup, the eye and the face are this frame's
+  useEffect(() => { headPoints.after = aim; return () => { headPoints.after = null; }; }, [headPoints, aim]);
 
   useFrame((state, dt) => {
     const g = gamer;
     g.update(dt);
+    const G = g.gestures;
     const t = state.clock.elapsedTime;
+    s.t = t;
 
-    // --- the foreleg: on the mouse, or up and down onto the desk -------------
-    const onMouse = mousePoint(g.hand.dx, g.hand.dz, g.pressDepth);
-    if (g.slamPhase !== null) {
-      const p = g.slamPhase;
-      const wind = 0.28;
-      if (p < wind) gripTargetRef.current = lerp3(onMouse, SLAM_TOP, easeOut(p / wind));
-      else if (p < SLAM_HIT) gripTargetRef.current = lerp3(SLAM_TOP, SLAM_DESK, easeIn((p - wind) / (SLAM_HIT - wind)));
-      else if (p < 0.7) gripTargetRef.current = SLAM_DESK;
-      else gripTargetRef.current = lerp3(SLAM_DESK, onMouse, easeOut((p - 0.7) / 0.3));
-    } else {
-      gripTargetRef.current = g.grip > 0.01 ? onMouse : REST_HAND_WORLD;
-    }
+    // --- where everything the foreleg reaches for is this frame ------------------
+    mouseAnchor(g.hand, Math.max(g.pressDepth, G.press), s.mouse);
+    canPose({ lift: G.ch.canLift, tilt: G.ch.canTilt, shake: G.ch.canShake, crush: Math.max(G.can.crushed, G.ch.crush), t: G.clock }, s.can);
+    keyboardPose(G.kb, s.kb);
+    s.src.body = g.body;
+    aim();
+    gripTargetRef.current = g.grip > 0.01 ? s.target : REST_HAND_WORLD;
+    if (import.meta.env.DEV && window.__gameHand) gripTargetRef.current = window.__gameHand;
     dopamineRef.current = g.dopamine;
 
-    // --- the eyes: the enemy on the screen, the chat when it pings, the desk it hits
-    const newest = g.chat[g.chat.length - 1];
-    if (newest && newest !== glance.current.chat) {
-      glance.current.chat = newest;
-      if (!g.enemy && newest.kind !== 'me') glance.current.until = t + 0.9;
-    }
-    let at;
-    if (g.slamPhase !== null && g.slamPhase < 0.75) at = DESK_GAZE;
-    else if (g.enemy && g.phase === PHASES.PLAYING) {
-      const u = Math.max(-0.95, Math.min(0.95, g.enemy.err / HALF_FOV));
-      at = onScreen(u, -0.05);
-    } else if (t < glance.current.until || g.phase === PHASES.RAGE_QUIT) at = SIDE_GAZE;
-    else at = onScreen(Math.sin(t * 0.4) * 0.15, -0.1 + Math.sin(t * 0.7) * 0.05);
-    lookRef.current = at;
+    // --- the eyes: a spring on the point it looks at -------------------------------
+    const z = s.gaze;
+    gazePoint(g, s, z.want);
+    if (!z.ready) { z.p.copy(z.want); z.ready = true; }
+    const h = Math.min(dt, 1 / 30);
+    s.d.subVectors(z.want, z.p);
+    z.v.addScaledVector(s.d, GAZE_W * GAZE_W * h).addScaledVector(z.v, -2 * GAZE_ZETA * GAZE_W * h);
+    z.p.addScaledVector(z.v, h);
+    // the head's own moves on top — a shake, a nod — as turns about the neck
+    posedToWorld(NECK, g.body, s.neck);
+    s.d.set(z.p.x - s.neck[0], z.p.y - s.neck[1], z.p.z - s.neck[2]);
+    const dist = s.d.length();
+    s.side.crossVectors(s.d, UP).normalize();
+    s.lift.crossVectors(s.side, s.d).normalize();
+    const yaw = Math.tan(G.headYaw) * dist;
+    const pitch = -Math.tan(G.headPitch) * dist;
+    s.out[0] = z.p.x + s.side.x * yaw + s.lift.x * pitch;
+    s.out[1] = z.p.y + s.side.y * yaw + s.lift.y * pitch;
+    s.out[2] = z.p.z + s.side.z * yaw + s.lift.z * pitch;
+    lookRef.current = s.out;
 
     sound.setArousal(g.arousal, g.collapse);
 
-    // --- the camera jolts on a slam, a flinch, an explosion ---------------------
+    // --- the camera jolts on a slam, a flinch, an explosion, a knock on the desk --------
     if (g.phase !== lastPhase.current && g.phase === PHASES.RAGE_QUIT) shake.current = 1;
     lastPhase.current = g.phase;
-    shake.current = Math.max(0, shake.current - dt * 2.2, g.slamImpact * 0.9, g.startle * 0.25);
+    shake.current = Math.max(0, shake.current - dt * 2.2, g.slamImpact * 0.9, g.startle * 0.25, G.thud * 0.22);
     const k = shake.current;
     camera.position.set(
       base.x + Math.sin(t * 0.21) * 0.04 + Math.sin(t * 31.7) * k * 0.035,
@@ -342,7 +419,7 @@ function Mat({ gamer }) {
 }
 
 /** A tenkeyless board: the keys painted with a moving RGB wave; it jumps when the desk is hit. */
-function Keyboard({ gamer }) {
+function Keyboard({ gamer, kbRef }) {
   const [canvas, texture] = useCanvasTexture(512, 160);
   const group = useRef();
   const clock = useRef(0);
@@ -350,9 +427,11 @@ function Keyboard({ gamer }) {
     const t = state.clock.elapsedTime;
     clock.current += dt;
     if (group.current) {
-      const k = gamer.slamImpact;
-      group.current.position.y = KEYBOARD.center[1] + Math.abs(Math.sin(t * 30)) * k * 0.025;
-      group.current.rotation.x = Math.sin(t * 23) * k * 0.05;
+      // where a shove has sent it (gameGestures.js), jumping when the desk is hit
+      const kbp = kbRef.current;
+      const k = Math.max(gamer.slamImpact, gamer.gestures.thud * 0.35);
+      group.current.position.set(kbp.center[0], KEYBOARD.center[1] + Math.abs(Math.sin(t * 30)) * k * 0.025, kbp.center[2]);
+      group.current.rotation.set(Math.sin(t * 23) * k * 0.05, kbp.yaw, 0);
     }
     if (clock.current < 1 / 12) return;
     clock.current = 0;
@@ -397,8 +476,10 @@ function Mouse({ gamer }) {
   const c = useMemo(() => new THREE.Color(), []);
   useFrame((state) => {
     if (ref.current) {
-      ref.current.position.set(MOUSE.home[0] + gamer.hand.dx, MOUSE.home[1], MOUSE.home[2] + gamer.hand.dz);
-      ref.current.rotation.y = gamer.hand.dz * 1.5;
+      const h = gamer.hand;
+      // picked up and put back nearer the middle, tipped on its way; turned with the sweep
+      ref.current.position.set(MOUSE.home[0] + h.dx, MOUSE.home[1] + (h.lift ?? 0), MOUSE.home[2] + h.dz);
+      ref.current.rotation.set(0, h.yaw ?? h.dz * 1.5, h.tilt ?? 0);
     }
     if (glow.current) glow.current.color.copy(rgbAt(0.1, state.clock.elapsedTime, gamer, c));
   });
@@ -421,38 +502,94 @@ function Mouse({ gamer }) {
   );
 }
 
-/** BUZZ, the energy drink of flies. */
-function Can({ gamer }) {
+/**
+ * The energy drink — a Monster Ultra White (the model by prajwalk12 on
+ * Sketchfab) — on the desk past the mouse, or wherever the foreleg is
+ * holding it: lifted to the mouthparts, tipped, shaken, crushed when it is
+ * empty (gameGestures.js poses it). Inside its group the model is turned
+ * every frame so the logo faces the camera, whichever way the can is held.
+ */
+function Can({ gamer, canRef }) {
+  const { scene } = useGLTF('/models/monster-ultra-white.glb', '/draco/');
+  const { camera } = useThree();
   const ref = useRef();
-  const label = useMemo(() => {
-    const c = document.createElement('canvas');
-    c.width = 256; c.height = 128;
-    const ctx = c.getContext('2d');
-    ctx.fillStyle = '#131313'; ctx.fillRect(0, 0, 256, 128);
-    ctx.fillStyle = '#b6ff2a'; ctx.font = '900 54px Inter, system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText('BUZZ', 128, 60);
-    ctx.fillStyle = '#b6ff2a'; ctx.fillRect(0, 100, 256, 8);
-    const t = new THREE.CanvasTexture(c);
-    t.colorSpace = THREE.SRGBColorSpace;
-    return t;
-  }, []);
+  const spin = useRef();
+  const model = useMemo(() => {
+    const root = scene.clone(true);
+    root.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    // fit it to CAN: the bottom on the group's origin, centred, the right height
+    const box = new THREE.Box3().setFromObject(root);
+    const size = box.getSize(new THREE.Vector3());
+    const k = CAN.height / size.y;
+    const holder = new THREE.Group();
+    root.scale.multiplyScalar(k);
+    root.position.set(-(box.min.x + size.x / 2) * k, -box.min.y * k, -(box.min.z + size.z / 2) * k);
+    holder.add(root);
+    return holder;
+  }, [scene]);
   useFrame((state) => {
-    if (!ref.current) return;
-    const k = gamer.slamImpact;
+    const g = ref.current;
+    if (!g) return;
+    const p = canRef.current;
+    const held = gamer.gestures.ch.canLift > 0.001;
+    // standing on the desk it still jumps when the desk is hit
+    const k = held ? 0 : Math.max(gamer.slamImpact, gamer.gestures.thud * 0.5);
     const t = state.clock.elapsedTime;
-    ref.current.position.y = CAN.base[1] + Math.abs(Math.sin(t * 26)) * k * 0.03;
-    ref.current.rotation.z = Math.sin(t * 19) * k * 0.2;
-    ref.current.rotation.x = Math.cos(t * 17) * k * 0.15;
+    g.position.set(p.base[0], p.base[1] + Math.abs(Math.sin(t * 26)) * k * 0.03, p.base[2]);
+    g.rotation.set(Math.cos(t * 17) * k * 0.15, p.yaw, -p.tilt + Math.sin(t * 19) * k * 0.2, 'YZX');
+    const crushed = p.height / CAN.height;
+    g.scale.set(1 + (1 - crushed) * 0.25, crushed, 1 + (1 - crushed) * 0.18);
+    // the logo to the camera: a turn of α about Y moves azimuth φ to φ − α
+    if (spin.current) {
+      const toCam = Math.atan2(camera.position.z - p.base[2], camera.position.x - p.base[0]);
+      spin.current.rotation.y = CAN_LOGO_AZIMUTH - p.yaw - toCam;
+    }
   });
   return (
-    <group ref={ref} position={CAN.base}>
-      <mesh position={[0, CAN.height / 2, 0]} castShadow>
-        <cylinderGeometry args={[CAN.radius, CAN.radius, CAN.height, 24, 1, true]} />
-        <meshStandardMaterial map={label} roughness={0.3} metalness={0.6} />
+    <group ref={ref}>
+      <group ref={spin}>
+        <primitive object={model} />
+      </group>
+    </group>
+  );
+}
+
+/**
+ * The proboscis, as at the bar and the coder's desk: out of the mouthparts,
+ * wherever the turned head has put them, down into the can's opening.
+ */
+function Proboscis({ gamer, mouthRef, canRef }) {
+  const stalk = useRef();
+  const tip = useRef();
+  const v = useMemo(() => ({ from: new THREE.Vector3(), to: new THREE.Vector3(), dir: new THREE.Vector3(), up: new THREE.Vector3(0, 1, 0) }), []);
+  useFrame(() => {
+    const m = mouthRef.current;
+    const G = gamer.gestures;
+    const e = G.ch.proboscis;
+    const on = !!m && e > 0.02 && G.ch.canLift > 0.6;
+    if (stalk.current) stalk.current.visible = on;
+    if (tip.current) tip.current.visible = on;
+    if (!on) return;
+    const o = canRef.current.opening;
+    v.from.set(m[0], m[1], m[2]);
+    v.to.set(o[0], o[1] - 0.004, o[2]);
+    v.dir.subVectors(v.to, v.from);
+    const len = Math.max(0.001, v.dir.length() * e);
+    v.dir.normalize();
+    stalk.current.position.copy(v.from).addScaledVector(v.dir, len / 2);
+    stalk.current.quaternion.setFromUnitVectors(v.up, v.dir);
+    stalk.current.scale.set(1, len, 1);
+    tip.current.position.copy(v.from).addScaledVector(v.dir, len);
+  });
+  return (
+    <group>
+      <mesh ref={stalk} visible={false}>
+        <cylinderGeometry args={[0.0045, 0.0075, 1, 12]} />
+        <meshStandardMaterial color="#b0621c" roughness={0.45} />
       </mesh>
-      <mesh position={[0, CAN.height, 0]}>
-        <cylinderGeometry args={[CAN.radius * 0.9, CAN.radius, 0.008, 24]} />
-        <meshStandardMaterial color="#b8b8c0" roughness={0.25} metalness={0.9} />
+      <mesh ref={tip} visible={false} scale={[1, 0.7, 1]}>
+        <sphereGeometry args={[0.008, 16, 12]} />
+        <meshStandardMaterial color="#c47327" roughness={0.5} />
       </mesh>
     </group>
   );
@@ -836,21 +973,41 @@ function World({ gamer, onTick }) {
   const gripTargetRef = useRef(REST_HAND_WORLD);
   const dopamineRef = useRef(0);
   const lookRef = useRef(null);
+  const mouthRef = useRef(null);
+  // where the can and the keyboard are this frame: the rig fills them, the props read them
+  const canRef = useRef(canPose({}));
+  const kbRef = useRef(keyboardPose(null));
+  // the points on the head the foreleg goes to; Fly writes where the turned head has put them
+  const headPoints = useMemo(() => ({
+    local: [HEAD_POINTS.cup, HEAD_POINTS.eye, HEAD_POINTS.face],
+    world: [[0, 0, 0], [0, 0, 0], [0, 0, 0]],
+    after: null,
+  }), []);
   return (
     <>
       <Lights gamer={gamer} dopamineRef={dopamineRef} />
-      <Rig gamer={gamer} gripTargetRef={gripTargetRef} dopamineRef={dopamineRef} lookRef={lookRef} onTick={onTick} />
+      <Rig gamer={gamer} gripTargetRef={gripTargetRef} dopamineRef={dopamineRef} lookRef={lookRef} canRef={canRef} kbRef={kbRef} headPoints={headPoints} onTick={onTick} />
       <Room gamer={gamer} />
       <Desk gamer={gamer} />
       <Mat gamer={gamer} />
       <MainMonitor gamer={gamer} />
       <SideMonitor gamer={gamer} />
-      <Keyboard gamer={gamer} />
+      <Keyboard gamer={gamer} kbRef={kbRef} />
       <Mouse gamer={gamer} />
-      <Can gamer={gamer} />
+      <Can gamer={gamer} canRef={canRef} />
       <PCTower gamer={gamer} />
       <Chair />
-      <Fly machine={gamer} gripTargetRef={gripTargetRef} dopamineRef={dopamineRef} lookRef={lookRef} headSlot={<Headset gamer={gamer} />} />
+      <Fly
+        machine={gamer}
+        gripTargetRef={gripTargetRef}
+        dopamineRef={dopamineRef}
+        lookRef={lookRef}
+        mouthRef={mouthRef}
+        mouthLocal={MOUTH_LOCAL}
+        headPoints={headPoints}
+        headSlot={<Headset gamer={gamer} />}
+      />
+      <Proboscis gamer={gamer} mouthRef={mouthRef} canRef={canRef} />
       <ContactShadows position={[0, 0.002, 0]} opacity={0.55} scale={10} blur={2.4} far={4} resolution={1024} color="#030306" />
       <StudioProbe />
     </>
@@ -878,3 +1035,5 @@ export function GameScene({ gamer, onTick }) {
     </Canvas>
   );
 }
+
+useGLTF.preload('/models/monster-ultra-white.glb', '/draco/');

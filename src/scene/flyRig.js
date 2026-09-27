@@ -121,6 +121,22 @@ export function quatFromUnitVectors(a, b) {
   return [q[0] / l, q[1] / l, q[2] / l, q[3] / l];
 }
 
+/** a · b: b's rotation first, then a's. */
+export function quatMultiply(a, b) {
+  return [
+    a[3] * b[0] + a[0] * b[3] + a[1] * b[2] - a[2] * b[1],
+    a[3] * b[1] - a[0] * b[2] + a[1] * b[3] + a[2] * b[0],
+    a[3] * b[2] + a[0] * b[1] - a[1] * b[0] + a[2] * b[3],
+    a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2],
+  ];
+}
+
+/** A turn of `angle` radians about a unit `axis`. */
+export function quatAxisAngle(axis, angle) {
+  const s = Math.sin(angle / 2);
+  return [axis[0] * s, axis[1] * s, axis[2] * s, Math.cos(angle / 2)];
+}
+
 export function quatRotate(q, v) {
   const t = scale(cross([q[0], q[1], q[2]], v), 2);
   return add(add(v, scale(t, q[3])), cross([q[0], q[1], q[2]], t));

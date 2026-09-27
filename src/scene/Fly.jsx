@@ -14,7 +14,9 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
-import { legWeights, headWeight, solveLegIK, solveHeadLook, quatRotate, SHOULDER, HAND, NECK, REACH } from './flyRig.js';
+import {
+  legWeights, headWeight, solveLegIK, solveHeadLook, quatRotate, quatMultiply, quatAxisAngle, SHOULDER, HAND, NECK, REACH,
+} from './flyRig.js';
 import { FLY, PARTS } from './layout.js';
 
 /** What the fly watches when it is not working the handle: the middle reel. */
@@ -75,8 +77,18 @@ export const REST_HAND = HAND;
  * second fly is the same pose moved along the floor.
  * `headSlot`, if given, is rendered in the fly's own model space and turned
  * with the head every frame — a headset stays on the head it was fitted to.
+ * `headPoints`, if given, is `{ local, world, after }`: every frame each point
+ * in `local` (model space, on the head) is written to `world` where the
+ * turned head has put it, and then `after()` is called — before the foreleg
+ * is solved, so a tarsus sent to the headset or the face lands on it this
+ * frame, not last frame.
+ *
+ * The machine may also carry, all optional (absent, the fly moves exactly as
+ * it always has): `body` — { pitch, yaw, roll, rise }, how it sits, leaning in
+ * or back; `breath` — { phase, depth }, its breathing, paced by the machine;
+ * `headRoll` — the head tilted about the way it looks, radians.
  */
-export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mouthLocal, pose = FLY, headSlot = null }) {
+export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mouthLocal, pose = FLY, headSlot = null, headPoints = null }) {
   const { scene } = useGLTF('/models/fly.glb', '/draco/');
   const groupRef = useRef();
   const headRef = useRef();
@@ -166,7 +178,13 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
     // sags back and to one side on the stool.
     const slump = machine?.collapse ?? 0;
     const alive = 1 - slump;
-    const breathe = (Math.sin(t * 1.35) * 0.006 + Math.sin(t * 3.1) * 0.002) * (0.25 + 0.75 * alive);
+    // paced by the machine if it breathes for itself: slower calm, faster wound up, deep on a sigh
+    const breath = machine?.breath;
+    const breathe = breath
+      ? (Math.sin(breath.phase) * 0.006 + Math.sin(breath.phase * 2.3 + 0.7) * 0.002) * breath.depth * (0.25 + 0.75 * alive)
+      : (Math.sin(t * 1.35) * 0.006 + Math.sin(t * 3.1) * 0.002) * (0.25 + 0.75 * alive);
+    // how it sits: leaning in, sitting back, turned, recoiling
+    const body = machine?.body;
     // a fresh nicotine pouch: a quick shiver that runs through it and fades
     const tingle = (machine?.tingle ?? 0) * alive;
     const tremor = arousal * (Math.sin(t * 22) * 0.004 + Math.sin(t * 31.3) * 0.003)
@@ -182,12 +200,23 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
     g.rotation.z = (Math.sin(t * 0.83) * 0.006 + fear * Math.sin(t * 5.3) * 0.012) * alive + slump * SLUMP_ROLL
       + sway * (Math.sin(t * 0.61) * 0.07 + Math.sin(t * 1.37) * 0.025) + convulse * 1.3
       + tingle * Math.sin(t * 57) * 0.014;
+    if (body) {
+      g.position.y += body.rise;
+      g.rotation.y += body.yaw;
+      g.rotation.z += body.roll;
+    }
     // FLY.pitch is what sits the fly up on the stool; the lean is the extra
     // tip it gives the handle on the way down.
     const lean = (machine?.grip ?? 0) * -(machine?.pullProgress ?? 0);
     // at the bar it bends over the straw
     const stoop = (machine?.lean ?? 0) * 0.07;
     g.rotation.x = pose.pitch + lean * 0.06 + stoop - fear * alive * 0.055 - slump * SLUMP_PITCH;
+    if (body) {
+      // the thorax rocks a touch with each breath
+      g.rotation.x += body.pitch + (breath ? Math.sin(breath.phase) * 0.004 * breath.depth * alive : 0);
+      // it can move fast (a slam, a startle): solve the leg and the gaze against this frame's body, not last frame's
+      g.updateMatrixWorld();
+    }
 
     const u = uniforms.current?.current;
     if (!u) return;
@@ -202,7 +231,10 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
     tmp.world.set(watch[0], watch[1] - slump * 0.45, watch[2]);
     g.worldToLocal(tmp.local.copy(tmp.world));
     const glance = Math.sin(t * 0.8) * 0.012;
-    const look = solveHeadLook([tmp.local.x + glance, tmp.local.y + glance * 0.6, tmp.local.z]);
+    let look = solveHeadLook([tmp.local.x + glance, tmp.local.y + glance * 0.6, tmp.local.z]);
+    // a tilt of the head, about the way it is looking
+    const roll = machine?.headRoll ?? 0;
+    if (roll) look = quatMultiply(quatAxisAngle(quatRotate(look, [0, 0, 1]), roll), look);
     u.uHead.value.set(look[0], look[1], look[2], look[3]);
     // whatever is worn on the head turns with it, rigidly, about the same neck
     if (headRef.current) headRef.current.quaternion.set(look[0], look[1], look[2], look[3]);
@@ -218,6 +250,18 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
       );
       g.localToWorld(tmp.world);
       mouthRef.current = [tmp.world.x, tmp.world.y, tmp.world.z];
+    }
+
+    if (headPoints) {
+      for (let i = 0; i < headPoints.local.length; i++) {
+        const p = headPoints.local[i];
+        const o = quatRotate(look, [p[0] - NECK[0], p[1] - NECK[1], p[2] - NECK[2]]);
+        tmp.world.set(NECK[0] + o[0], NECK[1] + o[1], NECK[2] + o[2]);
+        g.localToWorld(tmp.world);
+        const w = headPoints.world[i];
+        w[0] = tmp.world.x; w[1] = tmp.world.y; w[2] = tmp.world.z;
+      }
+      headPoints.after?.();
     }
 
     // --- the foreleg -----------------------------------------------------

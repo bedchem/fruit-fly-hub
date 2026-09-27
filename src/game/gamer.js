@@ -26,6 +26,7 @@
  */
 import { makeRng } from './market.js';
 import { GAMES, GAME_ORDER, START_RANK, CS2_ROUNDS_TO_WIN, FORTNITE_PLAYERS, rankDelta } from './games.js';
+import { Gestures } from './gamerGestures.js';
 
 export const PHASES = {
   /** Looking for a match. */
@@ -54,9 +55,8 @@ const T = {
   switching: 3.2,
   respawn: 2.8,
   roundEnd: 1.6,
-  slam: 0.95,
 };
-/** Where on the slam the foreleg hits the desk, 0..1 of its length. */
+/** Where on the classic slam the foreleg hits the desk, 0..1 of its length. */
 export const SLAM_HIT = 0.42;
 
 /** Tilt at which a death may end on the desk. */
@@ -136,11 +136,14 @@ export class Gamer {
     // --- the foreleg -----------------------------------------------------------
     this.grip = 0;              // on the mouse
     this.pressDepth = 0;        // a click
-    this.hand = { dx: 0, dz: 0 };
+    /** Where the mouse is on the pad, and how far it is lifted and tipped (gamerGestures.js moves it). */
+    this.hand = { dx: 0, dz: 0, lift: 0, tilt: 0, yaw: 0 };
     this.slamPhase = null;      // 0..1 through a slam, null when not slamming
     this.slamImpact = 0;        // 1 at the hit, fading: the desk and the camera jump
     this.slamCooldown = 0;
-    this.lean = 0;
+    /** The slam under way: which kind, how long, where it hits (gamerGestures.js picks). */
+    this.rage = null;
+    this.slamHits = 0;
     this.tingle = 0;
 
     // --- the screen ------------------------------------------------------------
@@ -166,11 +169,25 @@ export class Gamer {
     this.killStreak = 0;
     this.inARow = 0;
     this.lastEvent = null;
+
+    // --- the body: gestures, posture, breathing, gaze --------------------------------
+    // its own random stream, so the matches play out the same with or without it
+    this.gestures = new Gestures(this, seed);
+    /** Read by Fly.jsx: how it sits, and how it breathes. */
+    this.body = this.gestures.body;
+    this.breath = this.gestures.breath;
     this.say('system', `${TAG} joined the voice channel`);
     this.startQueue();
   }
 
-  emit(type, detail) { this.lastEvent = { type, at: this.now() }; this.onEvent(type, detail); }
+  emit(type, detail) {
+    this.lastEvent = { type, at: this.now() };
+    this.gestures?.on(type, detail);
+    this.onEvent(type, detail);
+  }
+
+  /** The head tilted by a gesture, radians (Fly.jsx). */
+  get headRoll() { return this.gestures.headRoll; }
 
   get def() { return GAMES[this.game]; }
   pick(list) { return list[Math.floor(this.rng() * list.length) % list.length]; }
@@ -277,6 +294,7 @@ export class Gamer {
     this.updateSlam(dt);
     this.updateSenses(dt);
     this.updateSignals(dt);
+    this.gestures.update(dt);
     return this;
   }
 
@@ -759,49 +777,48 @@ export class Gamer {
 
   click(depth) { this.pressDepth = Math.max(this.pressDepth, depth); }
 
-  /** The mouse follows the turn it is making; the foreleg follows the mouse. */
+  /**
+   * The click fades and the grip settles on the mouse. Where the mouse goes —
+   * after the turn it is making, lifted back to the middle of the pad — and
+   * everything else the foreleg does is gamerGestures.js.
+   */
   updateHand(dt) {
-    const v = this.view;
-    const k = Math.min(1, dt * 10);
-    // turning right moves the mouse to the fly's right (−Z); a bit of lift and
-    // re-centring keeps it on the pad
-    const wantZ = clamp(-Math.tanh(v.yawVel * 0.55) * 0.05, -0.06, 0.06);
-    const wantX = clamp(Math.tanh(v.pitchVel ?? 0) * 0.01 + (this.firing ? -0.006 : 0), -0.02, 0.02);
-    this.hand.dz += (wantZ - this.hand.dz) * k;
-    this.hand.dx += (wantX - this.hand.dx) * k;
     this.pressDepth = Math.max(0, this.pressDepth - dt * 9);
     if (this.phase !== PHASES.QUEUE) this.grip += (1 - this.grip) * Math.min(1, dt * 4);
   }
 
-  startSlam() {
+  /**
+   * Rage. How it comes out — one slam, two, the mouse banged on the pad, the
+   * keyboard shoved, the foreleg thrown up, the headset gripped — is the
+   * gestures' pick; the game only needs how long it lasts and when the desk
+   * takes each blow.
+   */
+  startSlam(kind = null) {
     if (this.slamPhase !== null) return;
+    this.rage = this.gestures.rage(kind);
     this.slamPhase = 0;
-    this.slamHit = false;
+    this.slamHits = 0;
     this.slamCooldown = 10;
     this.slams += 1;
     if (this.match) this.match.slams += 1;
     this.career[this.game].slams += 1;
-    this.emit('windup');
+    this.emit('windup', { kind: this.rage.kind });
   }
 
   updateSlam(dt) {
     this.slamCooldown = Math.max(0, this.slamCooldown - dt);
     this.flinchCooldown = Math.max(0, this.flinchCooldown - dt);
     this.slamImpact = Math.max(0, this.slamImpact - dt * 2.2);
-    if (this.slamPhase === null) {
-      this.lean += (0 - this.lean) * Math.min(1, dt * 3);
-      return;
+    if (this.slamPhase === null) return;
+    const { dur, hits, kind } = this.rage;
+    this.slamPhase += dt / dur;
+    while (this.slamHits < hits.length && this.slamPhase * dur >= hits[this.slamHits].at) {
+      const strength = hits[this.slamHits++].strength;
+      this.slamImpact = Math.max(this.slamImpact, strength);
+      this.startle = Math.max(this.startle, 0.6 * strength);
+      this.emit('slam', { tilt: this.tilt, strength, kind });
     }
-    this.slamPhase += dt / T.slam;
-    const p = this.slamPhase;
-    this.lean = p < SLAM_HIT ? p / SLAM_HIT : Math.max(0, 1 - (p - SLAM_HIT) * 1.8);
-    if (!this.slamHit && p >= SLAM_HIT) {
-      this.slamHit = true;
-      this.slamImpact = 1;
-      this.startle = Math.max(this.startle, 0.6);
-      this.emit('slam', { tilt: this.tilt });
-    }
-    if (p >= 1) this.slamPhase = null;
+    if (this.slamPhase >= 1) { this.slamPhase = null; this.rage = null; }
   }
 
   // ============================================================== the senses
