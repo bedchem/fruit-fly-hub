@@ -477,14 +477,14 @@ export class Gamer {
     const arousal = this.arousal;
     const perf = 1 - 1.6 * (arousal - 0.45) * (arousal - 0.45);
     const blind = 1 - this.flash * 0.85;
-    const gain = (15 + 22 * this.track) * (0.6 + 0.4 * perf) * (1 - 0.4 * this.tilt) * blind;
+    const gain = (18 + 24 * this.track) * (0.6 + 0.4 * perf) * (1 - 0.4 * this.tilt) * blind;
     const err = e.bearing - v.yaw;
     const damp = 2 * Math.sqrt(gain);
     v.yawVel += (gain * err - damp * v.yawVel + this.pan * 0.8) * dt;
     v.yaw += v.yawVel * dt;
     v.pitch += (e.elev - v.pitch) * Math.min(1, dt * 4);
     // shaky hands: a tremor on top of the aim, bigger the more tilted it is
-    const sway = 0.006 + this.tilt * 0.028 + this.tingle * 0.012;
+    const sway = 0.005 + this.tilt * 0.024 + this.tingle * 0.01;
     this.wobble += ((this.rng() - 0.5) * 2 * sway - this.wobble) * Math.min(1, dt * 9);
     e.err = e.bearing - v.yaw + this.wobble;
 
@@ -733,10 +733,11 @@ export class Gamer {
     const chase = (1 - this.npf) * 0.5;
     const scores = {};
     for (const g of GAME_ORDER) {
-      const novelty = clamp01((this.clock - this.career[g].lastPlayed) / 300);
-      let s = values[g] * 1.4 + novelty * 0.4;
-      // the queue button is right there; a win, or low NPF, makes it "one more"
-      if (g === this.game) s += 0.25 + chase + (this.result?.won ? 0.2 : 0) - this.tilt * 0.5 - this.inARow * 0.16;
+      const novelty = clamp01((this.clock - this.career[g].lastPlayed) / 240);
+      let s = values[g] * 1.4 + novelty * 0.55;
+      // the queue button is right there; a win, or low NPF, makes it "one more" —
+      // but the same game again and again wears thin fast
+      if (g === this.game) s += 0.12 + chase * 0.7 + (this.result?.won ? 0.15 : 0) - this.tilt * 0.5 - this.inARow * 0.35;
       scores[g] = s;
     }
     const others = GAME_ORDER.filter((g) => g !== this.game).sort((a, b) => scores[b] - scores[a]);

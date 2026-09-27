@@ -55,7 +55,7 @@ function pose() {
     }
   } else if (head === 'gesture') {
     g.game = 'lol'; g.startMatch(); g.match.calmFor = 99; run(g, 0.5);
-    g.startGesture?.(state, true);
+    if (['slam', 'double', 'mouseSlam', 'shove', 'handsUp', 'headsetGrip'].includes(state)) { g.slamCooldown = 0; g.startSlam(state); } else g.gestures.play(state, g.gestures.idleOpts(state));
     run(g, Number(params.get('at') ?? 0.8));
   } else if (mode === 'creeper') fight('minecraft', { kind: 'creeper', name: 'Creeper', loom: true, grow: 0, t: 0 });
   else if (mode === 'slam') { fight('cs2'); g.tilt = 0.8; g.slamCooldown = 0; g.startSlam(); run(g, 0.42); }
