@@ -103,7 +103,7 @@ CAN.yaw = facing(CAN.base);
  * foreleg holds it by the side, `CAN_GRIP_TURN` round from the side facing
  * the shoulder towards the camera, so it shows.
  */
-export const CAN_DRINK = { base: [MOUTH[0] - 0.05, MOUTH[1] - CAN.height - 0.07, MOUTH[2] - 0.045] };
+export const CAN_DRINK = { base: [MOUTH[0] - 0.06, MOUTH[1] - CAN.height - 0.06, MOUTH[2] - 0.085] };
 CAN_DRINK.yaw = facing(CAN_DRINK.base);
 export const CAN_GRIP_TURN = 0.55;
 

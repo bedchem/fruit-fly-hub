@@ -78,6 +78,7 @@ export default function GameApp() {
       case 'start': case 'accept': sound.queuePop(); break;
       case 'sip': sound.burst({ freq: 700, q: 1.5, gain: 0.04, dur: 0.12, decay: 2 }); break;
       case 'crush': sound.crunch(); sound.burst({ freq: 2600, q: 2, gain: 0.08, dur: 0.08 }); break;
+      case 'canOpen': sound.burst({ freq: 5200, q: 0.6, gain: 0.07, dur: 0.35, type: 'highpass', decay: 2 }); sound.burst({ at: 0.02, freq: 1800, q: 5, gain: 0.05, dur: 0.02 }); break;
       case 'canDown': sound.burst({ freq: 1400, q: 3, gain: 0.05, dur: 0.04 }); break;
       case 'tap': sound.tone({ freq: 90, to: 60, dur: 0.12, gain: 0.08 + (d?.strength ?? 0.3) * 0.12, type: 'sine' }); break;
       case 'clatter': sound.clack(10); break;

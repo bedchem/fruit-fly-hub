@@ -799,7 +799,7 @@ export class Gestures {
     this.updateKeyboard();
 
     // --- what the fly starts by itself ----------------------------------------------------
-    this.thirst = Math.min(1.6, this.thirst + dt / 110 * (1 + g.tilt * 1.5 + (g.phase === 'playing' ? 0.3 : 0)));
+    this.thirst = Math.min(1.6, this.thirst + dt / 70 * (1 + g.tilt * 1.5 + (g.phase === 'playing' ? 0.3 : 0)));
     if (g.phase === 'playing') this.stiff = Math.min(1.5, this.stiff + dt / 140);
     this.schedule(dt);
 
@@ -850,7 +850,7 @@ export class Gestures {
     if (g.enemy || g.match?.roundOver) return !g.enemy && !!g.match?.roundOver;
     if (g.dead) return true;
     // a human does not know when the next one comes; mostly it gets away with it
-    return (g.match?.calmFor ?? 0) > dur * 0.75;
+    return (g.match?.calmFor ?? 0) > dur * 1.05;
   }
 
   schedule(dt) {
@@ -871,11 +871,11 @@ export class Gestures {
     const kind = this.pickWeighted(w);
     if (!kind) return;
     const opts = this.idleOpts(kind);
-    const est = { sip: 4.6, checkCan: 3.2, headset: 2.0, groom: 1.2 + (opts.strokes ?? 3) * 0.28, drum: 3.2, fidget: 2.3, stretch: 3.2, fixKeyboard: 2.0 }[kind] ?? 2;
+    const est = { sip: opts.empty ? 5.4 : 3.45 + (opts.sips ?? 2) * 0.66, checkCan: 3.2, headset: 2.0, groom: 1.2 + (opts.strokes ?? 3) * 0.28, drum: 3.2, fidget: 2.3, stretch: 3.2, fixKeyboard: 2.0 }[kind] ?? 2;
     if (!this.roomFor(est)) { this.nextIdle = 0.4 + this.rng() * 0.8; return; }
     this.play(kind, opts);
     const lobby = g.phase === 'queue' || g.phase === 'switching';
-    this.nextIdle = (6 + this.rng() * 14) * (lobby ? 0.7 : 1);
+    this.nextIdle = (4 + this.rng() * 9) * (lobby ? 0.7 : 1);
   }
 
   /** What it might do now, and how much it wants to. Null when now is not a moment for it. */
@@ -886,14 +886,15 @@ export class Gestures {
     const stretch = Math.max(0, this.stiff - 0.35) * 3;
     const calm = 1 - clamp01(g.arousal * 1.2);
     if (g.phase === 'queue' || g.phase === 'switching') {
-      return { drum: 2.6, fidget: 1.8, sip: 2.2 * drink, headset: 0.8, groom: 0.9 * (0.4 + calm), stretch, fixKeyboard: 8 * shoved, checkCan: this.can.crushed ? 0.25 + this.thirst * 0.2 : 0 };
+      return { drum: 2.2, fidget: 1.5, sip: 3.6 * drink, headset: 0.5, groom: 0.7 * (0.4 + calm), stretch, fixKeyboard: 8 * shoved, checkCan: this.can.crushed ? 0.25 + this.thirst * 0.2 : 0 };
     }
     if (g.phase === 'result' && g.t > 1.1) {
-      return { sip: 1.6 * drink, stretch: stretch * 1.2, headset: 0.7, groom: 0.7 * (0.4 + calm), drum: 0.7, fixKeyboard: 8 * shoved };
+      return { sip: 2.8 * drink, stretch: stretch * 1.2, headset: 0.4, groom: 0.5 * (0.4 + calm), drum: 0.6, fixKeyboard: 8 * shoved };
     }
     if (g.phase === 'rage-quit' && g.t > 2.2) return { groom: 0.3, headset: 0.5 };
     if (g.phase === 'playing' && !g.enemy && !g.match?.roundOver && !g.dead) {
-      return { headset: 1, groom: 0.8 * (0.3 + calm), fixKeyboard: 3 * shoved, drum: 0.25 };
+      // a quiet stretch of a match: a quick swig, now and then
+      return { sip: 1.9 * drink, headset: 0.3, groom: 0.3 * (0.3 + calm), fixKeyboard: 3 * shoved, drum: 0.2 };
     }
     return null;
   }
@@ -902,7 +903,9 @@ export class Gestures {
     const g = this.g;
     if (kind === 'sip') {
       const empty = this.can.fill <= 0.001;
-      return { sips: 1 + Math.floor(this.rng() * (1.6 + g.tilt * 1.6)), gulp: g.tilt > 0.5 && this.rng() < 0.6, empty };
+      // mid-match it is one quick swig; between matches it takes its time
+      const quick = g.phase === 'playing';
+      return { sips: quick ? 1 : 1 + Math.floor(this.rng() * (1.6 + g.tilt * 1.6)), gulp: g.tilt > 0.5 && this.rng() < 0.6, empty };
     }
     if (kind === 'groom') return { strokes: g.phase === 'playing' ? 2 + Math.floor(this.rng() * 2) : 3 + Math.floor(this.rng() * 3) };
     if (kind === 'drum') return { bpm: this.bpm, pattern: Math.floor(this.rng() * 3) };
@@ -922,7 +925,7 @@ export class Gestures {
         const stupid = !!e?.loom || type === 'explode' || g.flash > 0.3 || (d?.streak ?? 0) >= 3;
         this.kick(type === 'explode' ? 1 : 0.4);
         const x = r();
-        const kind = stupid ? (x < 0.5 ? 'facepalm' : x < 0.8 ? 'headShake' : null) : (x < 0.18 ? 'facepalm' : x < 0.5 ? 'headShake' : null);
+        const kind = stupid ? (x < 0.32 ? 'facepalm' : x < 0.55 ? 'headShake' : null) : (x < 0.08 ? 'facepalm' : x < 0.22 ? 'headShake' : null);
         if (kind) this.queue(kind, 0.35 + r() * 0.3, 1.6, kind === 'facepalm' ? 2.3 : 1.4);
         break;
       }
@@ -978,6 +981,12 @@ export class Gestures {
       case 'queue':
       case 'launch':
         this.bpm = 100 + Math.floor(r() * 44);
+        // the empty one crushed on the desk: a fresh can for the next match
+        if (this.can.crushed || this.can.fill < 0.05) {
+          this.can.crushed = 0;
+          this.can.fill = 1;
+          g.emit('canOpen');
+        }
         break;
       default: break;
     }
