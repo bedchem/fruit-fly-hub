@@ -8,6 +8,7 @@
  * other experiments.
  */
 import { useEffect, useRef } from 'react';
+import { refocusHowButton } from './HowItWorks.jsx';
 import { REELS, CATS, PHASES, NAMES } from '../game/scroll.js';
 import { ScrollThinker } from './scrollThoughts.js';
 import { TikTokFeedPlayer, EditCredit } from './TikTokConsent.jsx';
@@ -326,7 +327,7 @@ export function ScrollHowItWorks({ open, onClose, onCookieSettings }) {
   if (!open) return null;
   return (
     <div className="howto" id="howto" role="dialog" aria-label="How the doomscroll works" ref={ref}>
-      <button type="button" className="howto-close" onClick={onClose} aria-label="Close">×</button>
+      <button type="button" className="howto-close" onClick={() => { onClose(); refocusHowButton(); }} aria-label="Close">×</button>
       <h2>How the doomscroll works</h2>
       <dl>
         <dt>Two brains</dt>

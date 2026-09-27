@@ -8,6 +8,7 @@
  * frame, like the other experiments' panels.
  */
 import { useEffect, useRef } from 'react';
+import { refocusHowButton } from './HowItWorks.jsx';
 import { PHASES } from '../game/gamer.js';
 import { GAMES, GAME_ORDER, formatRank, CS2_ROUNDS_TO_WIN } from '../game/games.js';
 
@@ -340,7 +341,7 @@ export function GameHowItWorks({ open, onClose }) {
   if (!open) return null;
   return (
     <div className="howto" id="howto" role="dialog" aria-label="How the gaming setup works" ref={ref}>
-      <button type="button" className="howto-close" onClick={onClose} aria-label="Close">×</button>
+      <button type="button" className="howto-close" onClick={() => { onClose(); refocusHowButton(); }} aria-label="Close">×</button>
       <h2>How the gaming setup works</h2>
       <dl>
         <dt>It aims with its reflexes</dt>

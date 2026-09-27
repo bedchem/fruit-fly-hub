@@ -9,6 +9,7 @@
  * frame, like the other experiments' panels.
  */
 import { useEffect, useRef } from 'react';
+import { refocusHowButton } from './HowItWorks.jsx';
 import { PHASES, JITTER_MG, TOO_MUCH_MG, NOD_AT, MUG_MG } from '../game/coder.js';
 import POKYH from '../game/pokyhCode.js';
 
@@ -340,7 +341,7 @@ export function CodeHowItWorks({ open, onClose }) {
   if (!open) return null;
   return (
     <div className="howto" id="howto" role="dialog" aria-label="How the coder's night works" ref={ref}>
-      <button type="button" className="howto-close" onClick={onClose} aria-label="Close">×</button>
+      <button type="button" className="howto-close" onClick={() => { onClose(); refocusHowButton(); }} aria-label="Close">×</button>
       <h2>How the coder&apos;s night works</h2>
       <dl>
         <dt>It writes real code</dt>

@@ -7,6 +7,7 @@
  * on an animation frame rather than pushed through React state.
  */
 import { useEffect, useRef } from 'react';
+import { refocusHowButton } from './HowItWorks.jsx';
 import { Bar, PHASES, MM_PER_PERMILLE, SEDATION_PERMILLE, POUCH_MG, urgeReason } from '../game/bar.js';
 
 function useFrameLoop(machineRef, fn) {
@@ -336,7 +337,7 @@ export function BarHowItWorks({ open, onClose }) {
   if (!open) return null;
   return (
     <div className="howto" id="howto" role="dialog" aria-label="How the bar works" ref={ref}>
-      <button type="button" className="howto-close" onClick={onClose} aria-label="Close">×</button>
+      <button type="button" className="howto-close" onClick={() => { onClose(); refocusHowButton(); }} aria-label="Close">×</button>
       <h2>How the bar works</h2>
       <dl>
         <dt>The fly</dt>

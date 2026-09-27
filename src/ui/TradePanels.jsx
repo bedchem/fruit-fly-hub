@@ -8,6 +8,7 @@
  * frame, like the casino's and the bar's panels.
  */
 import { useEffect, useRef } from 'react';
+import { refocusHowButton } from './HowItWorks.jsx';
 import { PHASES, MAX_UNITS, START_CASH, SHARES_PER_UNIT, tradeReason } from '../game/trader.js';
 import { TICKER } from '../game/market.js';
 import { drawChart } from '../scene/chartTexture.js';
@@ -350,7 +351,7 @@ export function TradeHowItWorks({ open, onClose }) {
   if (!open) return null;
   return (
     <div className="howto" id="howto" role="dialog" aria-label="How the trading desk works" ref={ref}>
-      <button type="button" className="howto-close" onClick={onClose} aria-label="Close">×</button>
+      <button type="button" className="howto-close" onClick={() => { onClose(); refocusHowButton(); }} aria-label="Close">×</button>
       <h2>How the trading desk works</h2>
       <dl>
         <dt>It sees the chart</dt>

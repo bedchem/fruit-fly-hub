@@ -3,10 +3,8 @@
  * The foreleg should be working at roughly 60-80% of its span at rest: below
  * that it looks folded up, above it the IK runs out of arm mid-pull.
  */
-import fs from 'fs';
 import { SHOULDER, REACH } from '../src/scene/flyRig.js';
-
-const parts = JSON.parse(fs.readFileSync(new URL('../src/scene/parts.json', import.meta.url)));
+import parts from '../src/scene/parts.js';
 const SEAT = [1.5435, 0.8027, -0.0089];
 const OFFSET = [0.02, 0, 0.03];
 const PULLED = -0.95;

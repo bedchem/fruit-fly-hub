@@ -24,6 +24,11 @@ export function HowItWorksButton({ open, onToggle }) {
   );
 }
 
+/** The card's own × takes focus away with the card: give it back to the button that opened it. */
+export function refocusHowButton() {
+  document.querySelector('[aria-controls="howto"]')?.focus({ preventScroll: true });
+}
+
 export function HowItWorks({ open, onClose }) {
   const ref = useRef(null);
 
@@ -46,7 +51,7 @@ export function HowItWorks({ open, onClose }) {
   if (!open) return null;
   return (
     <div className="howto" id="howto" role="dialog" aria-label="How it works" ref={ref}>
-      <button type="button" className="howto-close" onClick={onClose} aria-label="Close">×</button>
+      <button type="button" className="howto-close" onClick={() => { onClose(); refocusHowButton(); }} aria-label="Close">×</button>
       <h2>How it works</h2>
       <dl>
         <dt>The fly</dt>

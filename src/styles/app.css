@@ -1416,7 +1416,8 @@ a.pill { text-decoration: none; }
 .report-big { font-family: var(--mono); font-size: 1.3rem; font-weight: 600; color: var(--ink); }
 .report-doom { color: var(--alarm); }
 
-.scroll-toast { top: auto; bottom: calc(var(--gutter) + 0.2rem); }
+/* above the dock, never over its buttons */
+.scroll-toast { top: auto; bottom: calc(var(--gutter) + 3.6rem); }
 
 @media (max-width: 560px) {
   .scrollbank { min-width: 0; max-width: 12rem; }
@@ -1427,8 +1428,13 @@ a.pill { text-decoration: none; }
 
 /* ---------- TikTok: consent notice, player, credits ---------- */
 
-.slip.consent { max-width: 30rem; text-align: left; padding-top: 1.1rem; z-index: 6; }
+/* never taller than the stage: the text scrolls, the title and both choices stay in view */
+.slip.consent {
+  display: flex; flex-direction: column; max-width: 30rem; max-height: calc(100% - 2 * var(--gutter) - 3.6rem);
+  text-align: left; padding-top: 1.1rem; z-index: 6;
+}
 .slip.consent h2 { margin: 0 2rem 0.6rem 0; font-size: 1rem; font-weight: 600; }
+.consent-body { min-height: 0; overflow-y: auto; scrollbar-color: var(--ink-3) var(--surface-2); }
 .consent-body p { margin: 0 0 0.55rem; font-size: 0.8rem; line-height: 1.5; color: var(--ink-2); }
 .consent-body a { color: var(--ink); }
 .consent-body .consent-state { color: var(--ink); }
@@ -1523,7 +1529,7 @@ a.pill { text-decoration: none; }
 .tag-feed-off button:hover { color: var(--accent); }
 
 @media (max-width: 560px) {
-  .slip.consent { max-width: calc(100% - 1.8rem); bottom: 4.2rem; }
+  .slip.consent { max-width: calc(100% - 1.8rem); max-height: calc(100% - 5.1rem); bottom: 4.2rem; }
   .consent-actions { grid-template-columns: 1fr; }
 }
 
