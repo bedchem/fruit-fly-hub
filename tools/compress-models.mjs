@@ -27,6 +27,7 @@ const SRC = 'assets/models';
 const OUT = 'public/models';
 /** Longest texture edge per model: the bar is a backdrop seen from one seat. */
 const TEXTURE_SIZE = {
+  'custom-gaming-pc.glb': 512,
   // the gamer's can: small on screen, close to the camera only in a sip
   'monster-ultra-white.glb': 512,
   'old-bar.glb': 1024, 'slot-machine.glb': 2048,

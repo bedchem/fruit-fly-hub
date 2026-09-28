@@ -21,7 +21,7 @@ import { HAND, NECK } from './flyRig.js';
 import { MOUTH_LOCAL } from './barLayout.js';
 import {
   DESK, SCREEN, SIDE, MAT, KEYBOARD, MOUSE, CAN, CAN_LOGO_AZIMUTH, PC, CHAIR, WALL_X, HEADSET, HEAD_POINTS, HUD_GLANCE,
-  SIDE_GAZE, DESK_GAZE, DOWN_GAZE, UP_GAZE, GAME_CAMERA, onScreen,
+  SIDE_GAZE, DESK_GAZE, DOWN_GAZE, UP_GAZE, GAME_CAMERA, gameCameraFov, onScreen,
 } from './gameLayout.js';
 import {
   canPose, keyboardPose, resolveAnchors, handTarget, mouseAnchor, posedToWorld, CRUSHED_HEIGHT,
@@ -217,7 +217,7 @@ function Lights({ gamer, dopamineRef }) {
     }
     if (side.current) side.current.intensity = 1.6;
     rgbAt(0.2, t, g, tmp);
-    if (pc.current) { pc.current.color.copy(tmp); pc.current.intensity = 3 + g.slamImpact * 4; }
+    if (pc.current) { pc.current.color.copy(tmp); pc.current.intensity = 0.8 + g.slamImpact * 1.5; }
     rgbAt(0.6, t, g, tmp);
     if (strip.current) { strip.current.color.copy(tmp); strip.current.intensity = 2.2 + g.slamImpact * 3; }
     if (key.current) key.current.intensity = 0.55 + (dopamineRef.current ?? 0) * 0.3;
@@ -244,7 +244,7 @@ function Lights({ gamer, dopamineRef }) {
       <pointLight ref={glow} position={[SCREEN.center[0] + 0.35, SCREEN.center[1], SCREEN.center[2]]} distance={3.2} decay={2} intensity={5} />
       <pointLight ref={side} position={[SIDE.center[0] + 0.25, SIDE.center[1], SIDE.center[2] - 0.1]} distance={1.6} decay={2} color="#6a74ff" intensity={1.6} />
       {/* the PC, from inside its glass */}
-      <pointLight ref={pc} position={[PC.center[0] + 0.05, PC.center[1] + PC.size[1] * 0.55, PC.center[2] - PC.size[2] * 0.8]} distance={2.2} decay={2} intensity={3} />
+      <pointLight ref={pc} position={[PC.center[0] + 0.05, PC.center[1] + PC.size[1] * 0.55, PC.center[2] - PC.size[2] * 0.15]} distance={2.2} decay={2} intensity={0.8} />
       {/* the strip behind the desk, washing the wall */}
       <pointLight ref={strip} position={[WALL_X + 0.15, DESK.top + 0.1, -0.1]} distance={2.4} decay={2} intensity={2.2} />
     </>
@@ -597,127 +597,45 @@ function Proboscis({ gamer, mouthRef, canRef }) {
 
 // ------------------------------------------------------------------- the PC
 
-/** A spinning fan: an RGB ring and a hub of blades. */
-function Fan({ position, rotation, size, gamer, phase }) {
-  const blades = useRef();
-  const ring = useRef();
-  const c = useMemo(() => new THREE.Color(), []);
-  useFrame((state, dt) => {
-    if (blades.current) blades.current.rotation.z -= dt * (18 + gamer.heartRate * 0.02);
-    if (ring.current) ring.current.color.copy(rgbAt(phase, state.clock.elapsedTime, gamer, c));
-  });
-  return (
-    <group position={position} rotation={rotation}>
-      <mesh>
-        <torusGeometry args={[size * 0.44, size * 0.04, 8, 32]} />
-        <meshBasicMaterial ref={ring} toneMapped={false} />
-      </mesh>
-      <group ref={blades}>
-        {Array.from({ length: 7 }, (_, k) => (
-          <mesh key={k} rotation={[0, 0.35, (k / 7) * Math.PI * 2]} position={[Math.cos((k / 7) * Math.PI * 2) * size * 0.2, Math.sin((k / 7) * Math.PI * 2) * size * 0.2, 0]}>
-            <boxGeometry args={[size * 0.3, size * 0.1, 0.003]} />
-            <meshStandardMaterial color="#1a1a22" roughness={0.5} transparent opacity={0.85} />
-          </mesh>
-        ))}
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[size * 0.1, size * 0.1, 0.01, 16]} />
-          <meshStandardMaterial color="#222" />
-        </mesh>
-      </group>
-    </group>
-  );
-}
-
+/** The optimized Sketchfab PC; all geometry/material cleanup happens at build time. */
 function PCTower({ gamer }) {
-  const [sx, sy, sz] = PC.size;
-  const [x, y0, z] = PC.center;
-  const cy = y0 + sy / 2;
-  const rgb = useRef([]);
-  const c = useMemo(() => new THREE.Color(), []);
-  const pump = useMemo(() => {
-    const cv = document.createElement('canvas');
-    cv.width = 128; cv.height = 128;
-    const ctx = cv.getContext('2d');
-    ctx.fillStyle = '#0a0a0e'; ctx.beginPath(); ctx.arc(64, 64, 64, 0, Math.PI * 2); ctx.fill();
-    drawFly(ctx, 64, 60, 96);
-    const t = new THREE.CanvasTexture(cv);
-    t.colorSpace = THREE.SRGBColorSpace;
-    return t;
-  }, []);
-  useFrame((state) => {
-    rgb.current.forEach((m, k) => { if (m) m.color.copy(rgbAt(k * 0.13, state.clock.elapsedTime, gamer, c)); });
+  const { scene } = useGLTF('/models/custom-gaming-pc.glb', '/draco/');
+  const { model, materials, lights } = useMemo(() => {
+    const model = scene.clone(true);
+    const materials = new Map();
+    const lights = [];
+    model.traverse((mesh) => {
+      if (!mesh.isMesh) return;
+      const source = mesh.material;
+      if (!materials.has(source)) {
+        const material = source.clone();
+        if (material.transparent) {
+          material.depthWrite = false;
+          material.forceSinglePass = true;
+        }
+        if (material.emissiveMap) {
+          material.emissiveIntensity = 0.85;
+          lights.push(material);
+        }
+        materials.set(source, material);
+      }
+      mesh.material = materials.get(source);
+      mesh.castShadow = !mesh.material.transparent;
+      mesh.receiveShadow = !mesh.material.transparent;
+      if (mesh.material.name === 'Case glass') mesh.renderOrder = 1;
+    });
+    return { model, materials: [...materials.values()], lights };
+  }, [scene]);
+  useEffect(() => () => materials.forEach((m) => m.dispose()), [materials]);
+  useFrame(({ clock }) => {
+    const impact = Math.min(1, gamer.slamImpact + (gamer.phase === PHASES.RAGE_QUIT ? 0.7 : 0));
+    lights.forEach((material, i) => {
+      // Preserve the model's RGB gradients; a small pulse still reacts to play.
+      material.emissive.set('#ffffff').lerp(RAGE, impact);
+      material.emissiveIntensity = 0.85 + Math.sin(clock.elapsedTime * 0.7 + i) * 0.08 + impact * 0.4;
+    });
   });
-  const rgbMat = (k) => <meshBasicMaterial ref={(m) => { rgb.current[k] = m; }} toneMapped={false} />;
-  const metal = <meshStandardMaterial color="#0f0f13" roughness={0.35} metalness={0.6} />;
-  return (
-    <group position={[x, cy, z]}>
-      {/* the case: top, bottom, back, far side; the near side and front are glass */}
-      <mesh position={[0, sy / 2 - 0.006, 0]} castShadow><boxGeometry args={[sx, 0.012, sz]} />{metal}</mesh>
-      <mesh position={[0, -sy / 2 + 0.006, 0]} castShadow receiveShadow><boxGeometry args={[sx, 0.012, sz]} />{metal}</mesh>
-      <mesh position={[-sx / 2 + 0.006, 0, 0]} castShadow><boxGeometry args={[0.012, sy, sz]} />{metal}</mesh>
-      <mesh position={[0, 0, sz / 2 - 0.006]} castShadow><boxGeometry args={[sx, sy, 0.012]} />{metal}</mesh>
-      {/* motherboard on the far wall */}
-      <mesh position={[-0.02, 0.03, sz / 2 - 0.02]}>
-        <boxGeometry args={[sx * 0.62, sy * 0.62, 0.006]} />
-        <meshStandardMaterial color="#101418" roughness={0.6} />
-      </mesh>
-      {/* GPU, long, with its light bar */}
-      <mesh position={[-0.02, -0.04, 0.01]} castShadow>
-        <boxGeometry args={[sx * 0.7, 0.055, sz * 0.5]} />
-        <meshStandardMaterial color="#1c1c24" roughness={0.3} metalness={0.7} />
-      </mesh>
-      <mesh position={[-0.02, -0.04 + 0.028, 0.01 - sz * 0.25 - 0.001]}><boxGeometry args={[sx * 0.6, 0.006, 0.002]} />{rgbMat(0)}</mesh>
-      <mesh position={[-0.02, -0.04, 0.01 - sz * 0.25 - 0.002]}><boxGeometry args={[sx * 0.5, 0.01, 0.002]} />{rgbMat(1)}</mesh>
-      {/* four sticks of RAM, lit on top */}
-      {[0, 1, 2, 3].map((k) => (
-        <group key={k} position={[0.03 + k * 0.016, 0.12, sz / 2 - 0.06]}>
-          <mesh><boxGeometry args={[0.006, 0.06, 0.04]} /><meshStandardMaterial color="#15151a" metalness={0.6} roughness={0.3} /></mesh>
-          <mesh position={[0, 0.034, 0]}><boxGeometry args={[0.007, 0.01, 0.04]} />{rgbMat(2 + k)}</mesh>
-        </group>
-      ))}
-      {/* the AIO pump, with the Fly Lab mark on its screen */}
-      <group position={[-0.05, 0.1, sz / 2 - 0.05]}>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.04, 0.04, 0.03, 32]} />
-          <meshStandardMaterial color="#141418" roughness={0.3} metalness={0.7} />
-        </mesh>
-        <mesh position={[0, 0, -0.0155]} rotation={[0, Math.PI, 0]}>
-          <circleGeometry args={[0.034, 32]} />
-          <meshBasicMaterial map={pump} toneMapped={false} />
-        </mesh>
-        <mesh position={[0, 0, -0.016]}>
-          <torusGeometry args={[0.037, 0.003, 8, 32]} />
-          {rgbMat(6)}
-        </mesh>
-      </group>
-      {/* the PSU shroud */}
-      <mesh position={[0, -sy / 2 + 0.05, 0]}>
-        <boxGeometry args={[sx - 0.02, 0.09, sz - 0.02]} />
-        <meshStandardMaterial color="#0c0c10" roughness={0.5} metalness={0.4} />
-      </mesh>
-      {/* three fans behind the front glass, and one at the back */}
-      {[0.14, 0, -0.14].map((fy, k) => (
-        <Fan key={fy} gamer={gamer} phase={0.3 + k * 0.1} size={0.12} position={[sx / 2 - 0.03, fy + 0.03, 0]} rotation={[0, Math.PI / 2, 0]} />
-      ))}
-      <Fan gamer={gamer} phase={0.7} size={0.11} position={[-sx / 2 + 0.03, 0.13, 0]} rotation={[0, Math.PI / 2, 0]} />
-      {/* glass: the near side and the front */}
-      <mesh position={[0, 0, -sz / 2 + 0.003]}>
-        <boxGeometry args={[sx - 0.01, sy - 0.01, 0.004]} />
-        <meshStandardMaterial color="#1a1a2a" roughness={0.05} metalness={0.9} transparent opacity={0.16} envMapIntensity={1.4} />
-      </mesh>
-      <mesh position={[sx / 2 - 0.003, 0, 0]}>
-        <boxGeometry args={[0.004, sy - 0.01, sz - 0.01]} />
-        <meshStandardMaterial color="#1a1a2a" roughness={0.05} metalness={0.9} transparent opacity={0.2} envMapIntensity={1.4} />
-      </mesh>
-      {/* feet */}
-      {[[-1, -1], [-1, 1], [1, -1], [1, 1]].map(([a, b]) => (
-        <mesh key={`${a}${b}`} position={[a * (sx / 2 - 0.04), -sy / 2 - 0.006, b * (sz / 2 - 0.03)]}>
-          <cylinderGeometry args={[0.014, 0.014, 0.012, 12]} />
-          <meshStandardMaterial color="#222" />
-        </mesh>
-      ))}
-    </group>
-  );
+  return <primitive object={model} position={PC.center} scale={PC.size[1]} dispose={null} />;
 }
 
 // ----------------------------------------------------------------- the chair
@@ -1029,7 +947,7 @@ export function GameScene({ gamer, onTick }) {
         scene.fog = new THREE.Fog(BG.clone(), 5, 14);
       }}
     >
-      <PerspectiveCamera makeDefault fov={GAME_CAMERA.fov} position={GAME_CAMERA.position} near={0.05} far={60} />
+      <GameCamera />
       <AdaptiveDpr pixelated />
       <Suspense fallback={null}>
         <World gamer={gamer} onTick={onTick} />
@@ -1038,4 +956,11 @@ export function GameScene({ gamer, onTick }) {
   );
 }
 
+function GameCamera() {
+  const { width, height } = useThree((state) => state.size);
+  return <PerspectiveCamera makeDefault fov={gameCameraFov(width / height)} position={GAME_CAMERA.position} near={0.05} far={60} />;
+}
+
 useGLTF.preload('/models/monster-ultra-white.glb', '/draco/');
+
+useGLTF.preload('/models/custom-gaming-pc.glb', '/draco/');

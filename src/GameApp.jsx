@@ -156,7 +156,10 @@ export default function GameApp() {
             <a href="https://sketchfab.com/3d-models/drosophila-adult-fruit-fly-ct-scan-ad29b897bd2b4e27bb04ab9d31baa117" target="_blank" rel="noopener">
               fruit fly CT scan
             </a>
-            {' '}by etainproject. Energy drink:{' '}
+            {' '}by etainproject. PC:{' '}
+            <a href="https://sketchfab.com/3d-models/custom-gaming-pc-1a24273417534f69afa0f7c62b643ffc" target="_blank" rel="noopener">Custom Gaming PC</a>
+            {' '}by <a href="https://sketchfab.com/Yolala3d" target="_blank" rel="noopener">Yolala3D | Y3D</a>
+            {' '}(<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>; geometry, textures and materials optimized). Energy drink:{' '}
             <a href="https://sketchfab.com/3d-models/monster-ultra-white-542dc45df0774f41ab67d96bf99b332f" target="_blank" rel="noopener">Monster Ultra White</a>
             {' '}by prajwalk12 (Sketchfab Standard license). League of Legends, Minecraft, Fortnite, Counter-Strike 2, Red Dead Redemption 2 and
             God of War belong to Riot Games, Mojang Studios / Microsoft, Epic Games, Valve, Rockstar Games and Sony

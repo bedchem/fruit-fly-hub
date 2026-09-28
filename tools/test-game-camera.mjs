@@ -11,7 +11,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { PerspectiveCamera, Vector3 } from 'three';
-import { GAME_CAMERA, SCREEN, SIDE, PC, MOUSE, KEYBOARD, onScreen } from '../src/scene/gameLayout.js';
+import { GAME_CAMERA, SCREEN, SIDE, PC, MOUSE, KEYBOARD, onScreen, gameCameraFov } from '../src/scene/gameLayout.js';
 import { flyToWorld } from '../src/scene/layout.js';
 import { NECK } from '../src/scene/flyRig.js';
 
@@ -35,10 +35,10 @@ const PROPS = {
 };
 
 /** The stage is the page minus the side panel on desktop, the full width on a phone. */
-const SIZES = [[1440 - 368, 900], [1280 - 368, 720], [800, 700], [390, 650]];
+const SIZES = [[1440 - 368, 900], [1280 - 368, 720], [800, 700], [390, 650], [390, 490]];
 
 function project(width, height) {
-  const camera = new PerspectiveCamera(GAME_CAMERA.fov, width / height, 0.05, 60);
+  const camera = new PerspectiveCamera(gameCameraFov(width / height), width / height, 0.05, 60);
   camera.position.set(...GAME_CAMERA.position);
   camera.lookAt(...GAME_CAMERA.target);
   camera.updateMatrixWorld();
@@ -79,5 +79,18 @@ test('on a phone the main monitor is still on the stage', () => {
   const p = project(w, h);
   for (const k of ['screenBottomLeft', 'screenBottomRight', 'mouse']) {
     assert.ok(Math.abs(p[k].x) < 1.2 && Math.abs(p[k].y) < 1, `${k} lost on a phone: ${p[k].x.toFixed(2)}, ${p[k].y.toFixed(2)}`);
+  }
+});
+
+test('the entire PC stays in frame on desktop, tablet and phone', () => {
+  for (const [w, h] of SIZES) {
+    const camera = new PerspectiveCamera(gameCameraFov(w / h), w / h, 0.05, 60);
+    camera.position.set(...GAME_CAMERA.position);
+    camera.lookAt(...GAME_CAMERA.target);
+    camera.updateMatrixWorld();
+    for (const x of [-0.5, 0.5]) for (const y of [0, 1]) for (const z of [-0.5, 0.5]) {
+      const v = new Vector3(PC.center[0] + PC.size[0] * x, PC.center[1] + PC.size[1] * y, PC.center[2] + PC.size[2] * z).project(camera);
+      assert.ok(Math.abs(v.x) < 0.99 && Math.abs(v.y) < 0.99, `PC corner clipped at ${w}×${h}: ${v.x.toFixed(2)}, ${v.y.toFixed(2)}`);
+    }
   }
 });

@@ -110,8 +110,8 @@ export const CAN_GRIP_TURN = 0.55;
 /** A spot on the desk in front of the keyboard's right end: what it taps and drums on. */
 export const DESK_TAP = [0.815, DESK.top + 0.004, -0.165];
 
-/** The PC: a tower on the desk at the far right, front to the fly, glass side to the camera. */
-export const PC = { center: [0.47, DESK.top, -0.86], size: [0.46, 0.52, 0.235] };
+/** The PC: front toward -Z, glass toward +X; both face the camera. Measured from the optimized asset. */
+export const PC = { center: [0.47, DESK.top, -0.86], size: [0.238, 0.52, 0.517] };
 
 /** The chair, built round the seat the fly is fitted to. */
 export const CHAIR = {
@@ -206,3 +206,8 @@ export const GAME_CAMERA = {
   target: [0.5, 1.6, -0.15],
   fov: 37,
 };
+
+/** Preserve the desktop's horizontal framing when the stage becomes narrow. */
+export function gameCameraFov(aspect) {
+  return 2 * Math.atan(Math.tan(GAME_CAMERA.fov * Math.PI / 360) * Math.max(1, 1.26 / aspect)) * 180 / Math.PI;
+}
