@@ -704,8 +704,10 @@ b, output, .roll { font-variant-numeric: tabular-nums; }
   flex-wrap: wrap;
   align-items: center;
   gap: 0.4rem;
-  pointer-events: auto;
+  /* it spans the stage's width: only the pills take clicks, not the gaps */
+  pointer-events: none;
 }
+.dock-left > * { pointer-events: auto; }
 a.pill { text-decoration: none; }
 .dock-left .pill {
   justify-content: center;

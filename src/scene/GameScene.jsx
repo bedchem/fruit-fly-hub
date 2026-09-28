@@ -15,7 +15,7 @@ import { Canvas, useFrame, useThree, advance } from '@react-three/fiber';
 import { ContactShadows, AdaptiveDpr, PerspectiveCamera, RoundedBox, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { Fly } from './Fly.jsx';
-import { StudioProbe } from './BarScene.jsx';
+import { StudioProbe } from './studio.jsx';
 import { flyToWorld } from './layout.js';
 import { HAND, NECK } from './flyRig.js';
 import { MOUTH_LOCAL } from './barLayout.js';
@@ -281,6 +281,10 @@ function useCanvasTexture(w, h) {
 
 function MainMonitor({ gamer }) {
   const [canvas, texture] = useCanvasTexture(MAIN_W, MAIN_H);
+  useEffect(() => {
+    gamer.monitorCanvas = canvas;
+    return () => { if (gamer.monitorCanvas === canvas) gamer.monitorCanvas = null; };
+  }, [gamer, canvas]);
   const screen = useBentPlane(SCREEN.width, SCREEN.height, SCREEN.radius);
   const shell = useBentPlane(SCREEN.width + 0.026, SCREEN.height + 0.026, SCREEN.radius);
   const group = useRef();

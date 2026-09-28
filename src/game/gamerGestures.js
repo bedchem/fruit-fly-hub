@@ -919,6 +919,14 @@ export class Gestures {
     const g = this.g;
     const r = this.rng;
     switch (type) {
+      // the reel is running: nothing to do but drum the desk
+      case 'caseUnlock':
+        this.queue('drum', 0.45, 1.2, 2.4, { bpm: 150, pattern: 1 });
+        break;
+      // and then what came out: a fist for the good ones, a shake for another blue
+      case 'caseReveal':
+        this.queue(['rare', 'covert', 'classified'].includes(d.skin.rarity) ? 'fistPump' : 'headShake', 0.2, 1.8, 1.5, { twice: d.skin.rarity === 'rare' });
+        break;
       case 'death':
       case 'explode': {
         const e = g.enemy;

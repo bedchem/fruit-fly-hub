@@ -1,15 +1,16 @@
 /**
- * The seven games on the fly's monitor, as data: what each is called, how a
+ * The eight games on the fly's monitor, as data: what each is called, how a
  * match of it runs, what counts as a rank, who is on the team and what they
  * say. The rules of play live in gamer.js and the pictures in
  * scene/gamePainters.js; nothing here is drawn or simulated.
  *
- * The games are the real ones by name only. Every picture of them is painted
- * by us, procedurally — no logos, no footage, no assets — and none of their
- * makers has anything to do with this page.
+ * The games are the real ones by name only. Their gameplay is painted by us,
+ * procedurally — no logos, no footage, no game assets; only the CS2 case
+ * opening shows the real skin artwork, credited — and none of their makers has
+ * anything to do with this page.
  */
 
-export const GAME_ORDER = ['lol', 'minecraft', 'fortnite', 'cs2', 'rdr2', 'gow', 'gowr'];
+export const GAME_ORDER = ['lol', 'minecraft', 'fortnite', 'cs2', 'rdr2', 'gow', 'gowr', 'r6'];
 
 /** Games it plays alone, story missions rather than matches: friends only watch, in voice. */
 export const SOLO = new Set(['rdr2', 'gow', 'gowr']);
@@ -22,6 +23,18 @@ export const SOLO = new Set(['rdr2', 'gow', 'gowr']);
  * time on target it takes to kill the enemy.
  */
 export const GAMES = {
+  r6: {
+    id: 'r6', name: 'Rainbow Six Siege', short: 'Siege', maker: 'Ubisoft',
+    seconds: 220, calm: [1.9, 3.8], loom: .32, ttk: [1.8, 2.6], hp: [.42, .75],
+    glow: '#57aaca', accent: '#65c6ef', enemyKind: 'operator', loomKind: 'breach',
+    ally: ['mothman', 'BeeKay', 'larva_main', 'Aphid'],
+    enemy: ['Spider_Main', 'SwatterGG', 'Frogger', 'Dragonfly', 'Mantis'],
+    flame: ['use your drone', 'watch the flank', 'why did you reinforce that', 'plant!', 'he is holding the angle'],
+    praise: ['clean breach', 'good intel', 'nice clutch', 'site clear'],
+    rage: ['HE WAS IN THE WALL', 'I DRONED THAT', 'WHO REINFORCED THE ROTATION', 'THE PEEK', 'ONE PIXEL'],
+    calmTalk: ['drone first', 'hold the angle', 'planting', 'nice round'],
+    cockyTalk: ['one tap', 'operator diff', 'six legs six siege'],
+  },
   lol: {
     id: 'lol',
     name: 'League of Legends',
@@ -200,9 +213,15 @@ const DIVISIONS = ['IV', 'III', 'II', 'I'];
  * division. CS2: a rating in the thousands. Fortnite: points. Minecraft:
  * diamonds kept.
  */
-export const START_RANK = { lol: 843, minecraft: 12, fortnite: 1200, cs2: 8450, rdr2: 12, gow: 4200, gowr: 2600 };
+export const START_RANK = { lol: 843, minecraft: 12, fortnite: 1200, cs2: 8450, rdr2: 12, gow: 4200, gowr: 2600, r6: 2350 };
 
 export function formatRank(id, v) {
+  if (id === 'r6') {
+    const tiers = ['Copper', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Champion'];
+    const n = Math.max(0, Math.floor(v / 100));
+    const tier = Math.min(7, Math.floor(n / 5));
+    return `${tiers[tier]}${tier < 7 ? ` ${['V', 'IV', 'III', 'II', 'I'][n % 5]}` : ''} · ${Math.round(v % 100)} RP`;
+  }
   if (id === 'lol') {
     const div = Math.max(0, Math.floor(v / 100));
     const tier = LOL_TIERS[Math.min(LOL_TIERS.length - 1, Math.floor(div / 4))];
@@ -221,6 +240,7 @@ export function formatRank(id, v) {
 /** How a match result moves the rank. `m` is the finished match. */
 export function rankDelta(id, m, rng) {
   const r = rng();
+  if (id === 'r6') return m.won ? 24 + Math.round(r * 15) : -(18 + Math.round(r * 12));
   if (id === 'lol') return m.won ? 18 + Math.round(r * 8) : -(15 + Math.round(r * 7));
   if (id === 'cs2') return m.won ? 120 + Math.round(r * 110) : -(100 + Math.round(r * 120));
   if (id === 'fortnite') return Math.round((100 - m.placement) * 1.6) - 60;

@@ -202,7 +202,7 @@ export class GamerBrain {
     sim.drive(this.hearing, g.sound * 0.45);
 
     // --- which game this is: its own Kenyon cells --------------------------------
-    const kc = g.phase === PHASES.SWITCHING ? null : g.game;
+    const kc = g.phase === PHASES.SWITCHING ? null : g.phase === PHASES.CASE_OPENING ? 'cs2' : g.game;
     if (kc) sim.drive(this.kcSets[kc], KC_DRIVE * (playing ? 1 : 0.6));
 
     // --- the standing state ------------------------------------------------------

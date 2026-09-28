@@ -1,9 +1,10 @@
 /**
  * The fly at its gaming setup, as one deterministic state machine.
  *
- * It plays seven games in turn — League of Legends, Minecraft, Fortnite, CS2,
- * Red Dead Redemption 2, God of War and Ragnarök — with its right foreleg on
- * the mouse. Nothing here touches React or
+ * It plays eight games in turn — League of Legends, Minecraft, Fortnite, CS2,
+ * Red Dead Redemption 2, God of War, Ragnarök and Rainbow Six Siege — with its
+ * right foreleg on the mouse. When it likes CS2 it opens cases between matches
+ * (cases.js); Siege's rounds live in siege.js. Nothing here touches React or
  * three.js: the scene reads the continuous values (where the crosshair is,
  * how fast the view turns, the foreleg, the slam), the painters read the
  * match, and tools/sim-game.mjs runs the same class headless against the same
@@ -28,6 +29,8 @@
 import { makeRng } from './market.js';
 import { GAMES, GAME_ORDER, START_RANK, CS2_ROUNDS_TO_WIN, FORTNITE_PLAYERS, rankDelta } from './games.js';
 import { Gestures } from './gamerGestures.js';
+import { CaseInventory, RARITIES, AUTO_COOLDOWN, cursorAt, openingStage } from './cases.js';
+import { startSiegeRound, updateSiege, siegeDuel, siegeMatchOver } from './siege.js';
 
 export const PHASES = {
   /** Looking for a match. */
@@ -39,6 +42,7 @@ export const PHASES = {
   RAGE_QUIT: 'rage-quit',
   /** On the desktop, opening another game. */
   SWITCHING: 'switching',
+  CASE_OPENING: 'case-opening',
 };
 
 /** Its name in every lobby. */
@@ -78,17 +82,20 @@ const CALLOUTS = {
   minecraft: ['found iron', 'its getting dark', 'bring torches', 'where r u', 'skeleton on the hill'],
   fortnite: ['storm is closing', 'one shot him', 'loot the house', 'third party', 'bus leaving'],
   cs2: ['1 B', 'two long', 'eco', 'he is one', 'rotate', 'smoke mid'],
+  r6: ['drone the site', 'reinforced wall', 'one on stairs', 'plant behind the desk', 'watch the flank'],
   rdr2: ['behind the wagon', 'lasso him', 'the horse is right there', 'pinkertons incoming', 'go to camp'],
   gow: ['behind you', 'the boy is shooting', 'throw it and recall', 'draugr from the left', 'heal stone'],
   gowr: ['berserker spawning', 'switch to the blades', 'shield up', 'freya help', 'on your right'],
 };
 
 export class Gamer {
-  constructor({ onEvent = () => {}, seed = 20260925, rng, now = () => Date.now() } = {}) {
+  constructor({ onEvent = () => {}, seed = 20260925, rng, now = () => Date.now(), inventoryStorage = null } = {}) {
     this.onEvent = onEvent;
     this.rng = rng ?? makeRng(seed ^ 0x6a09e667);
     this.now = now;
     this.seed = seed;
+    this.cases = new CaseInventory({ seed, now, storage: inventoryStorage, onEvent: (type, detail) => this.caseEvent(type, detail) });
+    this.caseResume = null;
 
     this.phase = PHASES.QUEUE;
     this.t = 0;
@@ -221,6 +228,32 @@ export class Gamer {
     this.emit('queue', { game: this.game });
   }
 
+  /**
+   * A visitor picks a game: it quits what it is playing — the quit dialog, the
+   * window closing to the desktop — and opens that one, like any other switch.
+   * Its own choices resume after the next match.
+   */
+  selectGame(id) {
+    if (!GAME_ORDER.includes(id) || this.cases.active) return false;
+    if (this.phase === PHASES.SWITCHING) {
+      if (id === this.nextGame) return false;
+      this.nextGame = id;
+      this.switchBy = 'visitor';
+      return true;
+    }
+    if (id === this.game) return false;
+    this.switchFrom = this.phase;
+    this.switchBy = 'visitor';
+    this.match = null; this.enemy = null; this.dead = null; this.banner = null; this.result = null;
+    this.inARow = 0; this.firing = 0; this.collapse = 0;
+    this.nextGame = id;
+    this.phase = PHASES.SWITCHING;
+    this.t = 0;
+    this.switches += 1;
+    this.emit('switch', { from: this.game, to: id, by: 'visitor' });
+    return true;
+  }
+
   startMatch() {
     const d = this.def;
     const allies = d.ally.slice(0, this.game === 'fortnite' || this.game === 'minecraft' ? 3 : 4);
@@ -273,6 +306,7 @@ export class Gamer {
     c.played += 1;
     c.lastPlayed = this.clock;
     this.matches += 1;
+    if (this.game === 'r6') startSiegeRound(this);
     this.emit('start', { game: this.game });
   }
 
@@ -280,6 +314,7 @@ export class Gamer {
 
   update(dt) {
     dt = Math.min(dt, 1 / 20);
+    if (this.cases.shouldAutoOpen(this)) this.openCases(1 + Math.floor(this.cases.autoRng() * 3), 'auto');
     this.t += dt;
     this.clock += dt;
 
@@ -289,6 +324,7 @@ export class Gamer {
       case PHASES.RESULT: this.updateResult(dt); break;
       case PHASES.RAGE_QUIT: this.updateRageQuit(dt); break;
       case PHASES.SWITCHING: this.updateSwitching(dt); break;
+      case PHASES.CASE_OPENING: this.updateCases(dt); break;
       default: break;
     }
     this.updateHand(dt);
@@ -297,6 +333,64 @@ export class Gamer {
     this.updateSignals(dt);
     this.gestures.update(dt);
     return this;
+  }
+
+  /** Pause the current simulation exactly where it is, including its phase timer and view. */
+  openCases(count = 1, source = 'manual') {
+    if (this.cases.active || ![1, 2, 3].includes(count)) return false;
+    this.caseResume = { phase: this.phase, t: this.t, yaw: this.view.yaw, pitch: this.view.pitch };
+    this.phase = PHASES.CASE_OPENING;
+    this.t = 0;
+    this.firing = 0;
+    if (this.game === 'cs2') this.cases.lastAutoOpportunity = this.career.cs2.played;
+    this.cases.nextAutoAt = this.clock + AUTO_COOLDOWN;
+    return this.cases.open(count, source);
+  }
+
+  /** A visitor can ask for one case: only while it is in CS2 and not already opening. */
+  get canTriggerCase() {
+    return !this.cases.active && this.game === 'cs2' && this.phase !== PHASES.SWITCHING && this.phase !== PHASES.RAGE_QUIT;
+  }
+
+  triggerCase() { return this.canTriggerCase && this.openCases(1, 'manual'); }
+
+  /**
+   * On the case screen its mouse is its own: the view offset follows the
+   * cursor to "Unlock Container" (the foreleg moves the real mouse with it),
+   * stays there through the reel, and drifts back for the reveal.
+   */
+  updateCases(dt) {
+    this.grip += (1 - this.grip) * Math.min(1, dt * 3);
+    this.cases.update(dt);
+    const r = this.caseResume;
+    if (!r) return;
+    const batch = this.cases.active;
+    let x = 0.5, y = 0.5;
+    if (batch && !batch.summary && openingStage(batch.opening) !== 'reveal') ({ x, y } = cursorAt(batch.opening));
+    const k = Math.min(1, dt * 10);
+    this.view.yaw += (r.yaw + (x - 0.5) * 0.9 - this.view.yaw) * k;
+    this.view.pitch += (r.pitch - (y - 0.5) * 0.5 - this.view.pitch) * k;
+    this.view.yawVel = 0;
+  }
+
+  caseEvent(type, detail) {
+    if (type === 'caseUnlock') this.click(1);
+    else if (type === 'caseDrop') {
+      const rank = RARITIES[detail.skin.rarity].rank;
+      this.rewardPulse = Math.max(this.rewardPulse, 0.3 + rank * 0.25);
+      this.tilt = clamp01(this.tilt - 0.025 - rank * 0.02);
+    } else if (type === 'caseComplete' && this.caseResume) {
+      const r = this.caseResume;
+      this.phase = r.phase;
+      this.t = r.t;
+      this.view.yaw = r.yaw;
+      this.view.pitch = r.pitch;
+      this.view.yawVel = 0;
+      this.caseResume = null;
+      // a long three-case batch must not immediately reopen another
+      this.cases.nextAutoAt = this.clock + AUTO_COOLDOWN;
+    }
+    this.emit(type, detail);
   }
 
   updateQueue(dt) {
@@ -313,6 +407,7 @@ export class Gamer {
   }
 
   updatePlaying(dt) {
+    if (this.game === 'r6') { updateSiege(this, dt); return; }
     const m = this.match;
     const d = this.def;
     m.t += dt;
@@ -412,6 +507,7 @@ export class Gamer {
 
   matchShouldEnd() {
     const m = this.match;
+    if (this.game === 'r6') return siegeMatchOver(m);
     if (this.game === 'cs2') return m.rounds.us >= CS2_ROUNDS_TO_WIN || m.rounds.them >= CS2_ROUNDS_TO_WIN;
     if (this.game === 'fortnite') return m.players <= 1 || m.placement !== null;
     return m.t >= this.def.seconds;
@@ -492,13 +588,18 @@ export class Gamer {
     // --- shooting --------------------------------------------------------------
     const window = e.size * HALF_FOV * 0.5;
     const close = Math.abs(e.err) < window * 3;
-    const on = Math.abs(e.err) < window && e.grow > 0.25 && this.flash < 0.6;
+    const canShoot = this.game !== 'r6' || (m.siege.ammo > 0 && m.siege.reload <= 0);
+    const on = canShoot && Math.abs(e.err) < window && e.grow > 0.25 && this.flash < 0.6;
     const every = { minecraft: 0.42, lol: 0.55, rdr2: 0.38, gow: 0.5, gowr: 0.42 }[this.game] ?? 0.11;
-    this.firing = close ? 1 : 0;
-    if (close && this.clock - this.shotAt > every) {
+    this.firing = close && canShoot ? 1 : 0;
+    if (close && canShoot && this.clock - this.shotAt > every) {
       this.shotAt = this.clock;
       this.click(0.8);
       this.emit('shot', { hit: on });
+      if (this.game === 'r6') {
+        m.siege.ammo--;
+        if (m.siege.ammo === 0) { m.siege.reload = 1.35; this.emit('siegeReload'); }
+      }
       if (on) e.hitFlash = 1;
     }
     if (on) {
@@ -517,7 +618,7 @@ export class Gamer {
     }
 
     // --- how it ends -------------------------------------------------------------
-    m.hp = Math.max(0, 100 * (1 - e.t / e.ttk));
+    m.hp = Math.max(0, (e.startHP ?? 100) * (1 - e.t / e.ttk));
     if (e.hp <= 0) this.kill();
     else if (e.t >= e.ttk || (e.kind === 'creeper' && e.fuse > 0.9)) this.die(e.kind === 'creeper' ? 'explode' : 'shot');
   }
@@ -526,7 +627,7 @@ export class Gamer {
     const e = this.enemy;
     const m = this.match;
     // only the shooters have heads to aim for
-    const hs = (this.game === 'cs2' || this.game === 'fortnite' || this.game === 'rdr2')
+    const hs = (this.game === 'cs2' || this.game === 'fortnite' || this.game === 'rdr2' || this.game === 'r6')
       && Math.abs(e.err) < e.size * HALF_FOV * 0.25 && this.rng() < 0.3 + 0.4 * this.track;
     m.kills += 1;
     m.team[0].k += 1;
@@ -550,6 +651,7 @@ export class Gamer {
     this.firing = 0;
     m.calmFor = this.range(this.def.calm);
     if (this.game === 'cs2') this.afterDuel(false);
+    if (this.game === 'r6') siegeDuel(this, false, e.name);
   }
 
   die(cause) {
@@ -591,6 +693,7 @@ export class Gamer {
     if (this.tilt > SLAM_TILT && this.slamCooldown === 0 && this.rng() < (this.tilt - 0.45) * 1.3) this.startSlam();
     if (this.game === 'fortnite') { m.placement = m.players; return; }
     if (this.game === 'cs2') { this.afterDuel(true); return; }
+    if (this.game === 'r6') { siegeDuel(this, true, e.name); return; }
     // tilted far enough, it does not wait for the match to end
     if (this.tilt > LEAVE_TILT && this.rng() < 0.5) this.rageQuit(true);
   }
@@ -635,7 +738,8 @@ export class Gamer {
     const m = this.match;
     const g = this.game;
     let won;
-    if (g === 'cs2') won = m.rounds.us >= CS2_ROUNDS_TO_WIN;
+    if (g === 'r6') won = m.rounds.us > m.rounds.them;
+    else if (g === 'cs2') won = m.rounds.us >= CS2_ROUNDS_TO_WIN;
     else if (g === 'fortnite') {
       if (m.placement === null) m.placement = 1;
       won = m.placement === 1;
@@ -758,6 +862,8 @@ export class Gamer {
     if (next === this.game) { this.inARow += 1; this.startQueue(); return; }
     this.inARow = 0;
     this.nextGame = next;
+    this.switchFrom = this.phase;
+    this.switchBy = 'fly';
     this.phase = PHASES.SWITCHING;
     this.t = 0;
     this.switches += 1;
@@ -832,6 +938,14 @@ export class Gamer {
    * through the headset.
    */
   updateSenses(dt) {
+    if (this.phase === PHASES.CASE_OPENING) {
+      this.loom = 0;
+      this.flash = 0;
+      const o = this.cases.active?.opening;
+      this.targetMotion = o && !o.landed && !this.cases.active.summary && openingStage(o) === 'spin' ? 0.35 : 0.05;
+      this.sound += (0.1 - this.sound) * Math.min(1, dt * 12);
+      return;
+    }
     const e = this.enemy;
     let loom = 0;
     if (e?.loom && e.grow < 1) loom = clamp01(e.grow * 1.4 + 0.2);
@@ -848,8 +962,8 @@ export class Gamer {
     this.sound += (want - this.sound) * Math.min(1, dt * 12);
   }
 
-  get panRight() { return clamp01(this.view.yawVel / 2.2); }
-  get panLeft() { return clamp01(-this.view.yawVel / 2.2); }
+  get panRight() { return this.phase === PHASES.CASE_OPENING ? 0 : clamp01(this.view.yawVel / 2.2); }
+  get panLeft() { return this.phase === PHASES.CASE_OPENING ? 0 : clamp01(-this.view.yawVel / 2.2); }
 
   updateSignals(dt) {
     this.rewardPulse = Math.max(0, this.rewardPulse - dt * 2.2);

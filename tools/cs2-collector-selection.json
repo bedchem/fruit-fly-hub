@@ -1,0 +1,22 @@
+{
+  "guns": [
+    "AWP | Dragon Lore", "AWP | Gungnir", "AWP | Medusa", "AWP | Desert Hydra",
+    "AWP | Fade", "AWP | The Prince", "AK-47 | Wild Lotus", "AK-47 | Hydroponic",
+    "AK-47 | Gold Arabesque", "AK-47 | X-Ray", "AK-47 | Fire Serpent", "AK-47 | Vulcan",
+    "AK-47 | Fuel Injector", "M4A4 | Howl", "M4A1-S | Welcome to the Jungle",
+    "M4A1-S | Blue Phosphor", "M4A1-S | Hot Rod", "AUG | Akihabara Accept",
+    "Desert Eagle | Fennec Fox", "USP-S | Whiteout"
+  ],
+  "knives": ["Karambit", "Butterfly Knife", "M9 Bayonet", "Talon Knife", "Stiletto Knife", "Skeleton Knife", "Bayonet", "Flip Knife"],
+  "finishes": [
+    {"finish":"Doppler", "phase":"Sapphire"},
+    {"finish":"Doppler", "phase":"Ruby"},
+    {"finish":"Doppler", "phase":"Black Pearl"},
+    {"finish":"Gamma Doppler", "phase":"Emerald"},
+    {"finish":"Marble Fade"}, {"finish":"Fade"}, {"finish":"Crimson Web"}, {"finish":"Lore"}
+  ],
+  "blueGems": [
+    {"name":"AK-47 | Case Hardened", "slug":"ak-47-case-hardened", "pattern":661},
+    {"name":"★ Karambit | Case Hardened", "slug":"star-karambit-case-hardened", "pattern":387}
+  ]
+}

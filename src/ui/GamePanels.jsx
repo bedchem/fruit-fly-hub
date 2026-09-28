@@ -58,8 +58,9 @@ function Decision({ gamerRef }) {
       novelty: a.best ? Math.min(1, (g.clock - g.career[a.best].lastPlayed) / 300) : 0,
     };
     let verb = 'wants', target, why, state = 'leaning';
-    if (g.phase === PHASES.RAGE_QUIT) { state = 'broke'; verb = 'rage-quitting'; target = GAMES[a.best].short; why = `done with ${GAMES[current].short}. Alt-F4.`; }
-    else if (g.phase === PHASES.SWITCHING) { state = 'committed'; verb = 'opening'; target = GAMES[g.nextGame ?? current].short; why = 'something else. anything else.'; }
+    if (g.phase === PHASES.CASE_OPENING) { const a = g.cases.active; state = 'committed'; verb = 'opening'; target = a?.count > 1 ? `${a.count} cases` : 'a case'; why = a?.source === 'auto' ? 'CS2 feels good. The coin said yes.' : 'you asked. It was happy to.'; }
+    else if (g.phase === PHASES.RAGE_QUIT) { state = 'broke'; verb = 'rage-quitting'; target = GAMES[a.best].short; why = `done with ${GAMES[current].short}. Alt-F4.`; }
+    else if (g.phase === PHASES.SWITCHING) { state = 'committed'; verb = 'opening'; target = GAMES[g.nextGame ?? current].short; why = g.switchBy === 'visitor' ? 'you picked it. Quitting the other one.' : 'something else. anything else.'; }
     else if (g.phase === PHASES.QUEUE) { state = 'committed'; verb = 'queueing'; target = GAMES[current].short; why = g.inARow ? `game ${g.inARow + 1} in a row` : 'a fresh start'; }
     else {
       target = a.stay ? `more ${GAMES[current].short}` : GAMES[a.best].short;
@@ -117,16 +118,18 @@ export function GameHud({ gamerRef, ui }) {
   const tiltRef = useRef(null);
   const tiltValRef = useRef(null);
   useFrameLoop(gamerRef, (g) => {
-    const id = g.nextGame ?? g.game;
+    const id = g.phase === PHASES.CASE_OPENING ? 'cs2' : g.nextGame ?? g.game;
     const c = g.career[id];
     setText(gameRef.current, GAMES[id].name);
     setText(rankRef.current, `${formatRank(id, c.rank)}${c.lastDelta && g.phase === PHASES.RESULT ? `  ${c.lastDelta > 0 ? '+' : '−'}${Math.abs(c.lastDelta)}` : ''}`);
     const m = g.match;
     let line;
-    if (g.phase === PHASES.QUEUE) line = `in queue · ${Math.floor(g.t)}s`;
+    if (g.phase === PHASES.CASE_OPENING) line = `case ${(g.cases.active?.index ?? 0) + 1}/${g.cases.active?.count ?? 1} · ${g.cases.items.length} skins${g.caseResume?.phase === PHASES.PLAYING ? ' · match paused' : ''}`;
+    else if (g.phase === PHASES.QUEUE) line = `in queue · ${Math.floor(g.t)}s`;
     else if (g.phase === PHASES.SWITCHING) line = 'on the desktop';
     else if (g.phase === PHASES.RAGE_QUIT) line = 'quit the game';
     else if (!m) line = '';
+    else if (m.game === 'r6') line = `${m.siege.operator.name} · ${m.siege.attack ? 'ATK' : 'DEF'} · ${m.rounds.us}–${m.rounds.them}`;
     else if (m.game === 'cs2') line = `${m.kills}/${m.deaths} · rounds ${m.rounds.us}–${m.rounds.them} of ${CS2_ROUNDS_TO_WIN}`;
     else if (m.game === 'fortnite') line = `${m.kills} elims · ${m.players} left`;
     else if (m.game === 'minecraft') line = `${m.kills} mobs · ${m.deaths} deaths · ${m.carried} 💎 carried`;
@@ -295,7 +298,7 @@ export function ResultCard({ result }) {
   let line;
   if (result.game === 'fortnite') line = won ? 'Last one standing.' : `Out at #${result.placement}.`;
   else if (result.game === 'minecraft') line = won ? `Made it to sunrise with ${result.carried} diamonds.` : 'Died on the way home. The diamonds are gone.';
-  else if (result.game === 'cs2') line = `${result.rounds.us} : ${result.rounds.them}.`;
+  else if (result.game === 'cs2' || result.game === 'r6') line = `${result.rounds.us} : ${result.rounds.them}.`;
   else if (g.solo) line = won ? 'Mission complete.' : 'Died. Back to the last checkpoint.';
   else line = won ? 'The enemy nexus fell.' : 'The nexus fell. Theirs did not.';
   return (
@@ -377,11 +380,24 @@ export function GameHowItWorks({ open, onClose }) {
           does to it — kills and wins through PAM, deaths and defeats through PPL1. After every match it chooses: the same
           game again, or another, from what it has learned, NPF, novelty and tilt.
         </dd>
+        <dt>CS2 cases</dt>
+        <dd>
+          When CS2 is going well — its mushroom body values the game above zero — it flips a coin after each match:
+          heads, it pauses and opens one to three cases, the way the game does it, on its own monitor. Then it goes back to
+          exactly where it was. While it plays CS2 you can ask it to open one, watch the reel live, and look through its
+          inventory. The skin pictures are real artwork; the drops are simulated, saved in your browser, and worth nothing.
+        </dd>
+        <dt>Rainbow Six Siege</dt>
+        <dd>
+          Five against five on one lodge, Bomb mode: a drone in the preparation phase, breaching charges and reinforced
+          walls, no respawns within a round, a defuser to plant or disable, sides swapped after three rounds and overtime at
+          four all.
+        </dd>
       </dl>
       <p className="note">
         Wiring, cell types and transmitters are measured (<b>MaleCNS v1.0</b>); the readers are found in it, not listed by
-        hand. The matches, the ranks, tilt and the mapping from screen to retina are the model&apos;s. The games are drawn
-        by us — no footage, no logos — and none of their makers is involved.
+        hand. The matches, the ranks, tilt and the mapping from screen to retina are the model&apos;s. Gameplay is drawn
+        by us; the skin pictures in its inventory are Valve&apos;s, credited there. None of the game makers is involved.
       </p>
       <p className="howto-links">
         <a href="/about.html">Read the full write-up</a> · <a href="/legal.html">Legal &amp; privacy</a>

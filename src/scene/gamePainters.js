@@ -5,7 +5,8 @@
  * Minecraft, Fortnite or CS2 — or the queue, the result, the desktop it
  * rage-quits to. The vertical one shows a voice-and-text chat with its team
  * and the match scoreboard. Everything is drawn here, procedurally, from the
- * Gamer's state: no logos, no footage, no assets. The games are recognisable
+ * Gamer's state: no logos or footage. The case-opening painter uses locally
+ * stored skin images credited to Valve and their contributing artists. The games are recognisable
  * by their genre and their conventions — a lane seen from above, blocks at
  * night, a storm, a sandy corridor — and nothing more.
  *
@@ -18,13 +19,33 @@ import {
   MAIN_W, MAIN_H, SIDE_W, SIDE_H, SANS, MONO, PX_PER_RAD, TAU, clamp, clamp01, hash, hash2, smooth, vnoise,
   wrap, font, text, rrect, mmss, camYaw, bearingX, enemyOnScreen, drawFly, drawFeed, pixels, drawCursor,
 } from './painters/kit.js';
-import { RDR2 } from './painters/rdr2.js';
-import { GOW, RAGNAROK } from './painters/gow.js';
+import { drawCases } from './painters/cases.js';
 
 export { MAIN_W, MAIN_H, SIDE_W, SIDE_H, drawFly };
 
 /** Games whose screens live in their own painter files: { play, queue, result, icon }. */
-const CUSTOM = { rdr2: RDR2, gow: GOW, gowr: RAGNAROK };
+const CUSTOM = {};
+const LOADING = {};
+const IMPORTERS = {
+  rdr2: () => import('./painters/rdr2.js').then((m) => m.RDR2),
+  gow: () => import('./painters/gow.js').then((m) => m.GOW),
+  gowr: () => import('./painters/gow.js').then((m) => m.RAGNAROK),
+  r6: () => import('./painters/siege.js').then((m) => m.SIEGE),
+};
+export function preloadGamePainter(id) {
+  if (!IMPORTERS[id]) return Promise.resolve();
+  LOADING[id] ??= IMPORTERS[id]().then((painter) => { CUSTOM[id] = painter; });
+  return LOADING[id];
+}
+
+function pendingPainter(ctx, g, id) {
+  if (!IMPORTERS[id] || CUSTOM[id]) return false;
+  preloadGamePainter(id).catch(() => {});
+  ctx.fillStyle = '#10202d'; ctx.fillRect(0, 0, MAIN_W, MAIN_H);
+  text(ctx, GAMES[id].name, MAIN_W / 2, MAIN_H / 2, { size: 48, align: 'center', color: GAMES[id].accent });
+  text(ctx, 'Joining the game…', MAIN_W / 2, MAIN_H / 2 + 58, { size: 18, align: 'center', color: '#9cb3c6' });
+  return true;
+}
 
 // ============================================================ the main monitor
 
@@ -36,6 +57,7 @@ export function drawGame(ctx, g, t) {
     case PHASES.RESULT: drawPlay(ctx, g, t); drawResult(ctx, g, t); break;
     case PHASES.RAGE_QUIT: drawRageQuit(ctx, g, t); break;
     case PHASES.SWITCHING: drawSwitching(ctx, g, t); break;
+    case PHASES.CASE_OPENING: drawCases(ctx, g); break;
     default: break;
   }
   ctx.restore();
@@ -43,6 +65,7 @@ export function drawGame(ctx, g, t) {
 
 function drawPlay(ctx, g, t) {
   const game = g.match?.game ?? g.game;
+  if (pendingPainter(ctx, g, game)) return;
   if (CUSTOM[game]) CUSTOM[game].play(ctx, g, t);
   else if (game === 'cs2') drawCS(ctx, g, t);
   else if (game === 'minecraft') drawMinecraft(ctx, g, t);
@@ -944,6 +967,7 @@ function drawLeagueHud(ctx, g, m) {
 // ------------------------------------------------------------ between matches
 
 function drawQueue(ctx, g, t) {
+  if (pendingPainter(ctx, g, g.game)) return;
   if (CUSTOM[g.game]?.queue) { CUSTOM[g.game].queue(ctx, g, t); return; }
   const p = g.phaseProgress;
   const d = GAMES[g.game];
@@ -1003,6 +1027,7 @@ function drawQueue(ctx, g, t) {
 function drawResult(ctx, g, t) {
   const r = g.result;
   if (!r) return;
+  if (pendingPainter(ctx, g, r.game)) return;
   if (CUSTOM[r.game]?.result) { CUSTOM[r.game].result(ctx, g, t); return; }
   const k = clamp01(g.t * 2);
   ctx.fillStyle = `rgba(0,0,0,${0.5 * k})`;
@@ -1050,6 +1075,8 @@ function drawGameIcon(ctx, id, x, y, s) {
     ctx.strokeStyle = '#4dff6a'; ctx.lineWidth = s * 0.06;
     ctx.beginPath(); ctx.arc(0, 0, s * 0.22, 0, TAU); ctx.stroke();
     for (const [a, b] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) { ctx.beginPath(); ctx.moveTo(a * s * 0.12, b * s * 0.12); ctx.lineTo(a * s * 0.32, b * s * 0.32); ctx.stroke(); }
+  } else if (id === 'r6') {
+    text(ctx, '6', 0, s * .3, { size: s * .78, weight: 900, align: 'center', color: '#ecf4f8' });
   } else if (id === 'rdr2') {
     // a red "R"-less badge: a revolver cylinder
     ctx.fillStyle = '#e8d6b0'; ctx.beginPath(); ctx.arc(0, 0, s * 0.26, 0, TAU); ctx.fill();
@@ -1117,14 +1144,72 @@ function drawRageQuit(ctx, g, t) {
   }
 }
 
+/**
+ * The last frame of the game it is closing, per screen: whatever the canvas
+ * showed when the switch began. Only a screen that was already drawing then
+ * has one; the others go straight to the desktop.
+ */
+const closingFrames = new WeakMap();
+function closingFrame(ctx, g) {
+  let f = closingFrames.get(ctx.canvas);
+  if (!f || f.id !== g.switches) {
+    const c = f?.c ?? document.createElement('canvas');
+    c.width = MAIN_W; c.height = MAIN_H;
+    const valid = g.phaseProgress < 0.08 && ctx.canvas.width === MAIN_W;
+    if (valid) c.getContext('2d').drawImage(ctx.canvas, 0, 0);
+    f = { id: g.switches, c, valid };
+    closingFrames.set(ctx.canvas, f);
+  }
+  return f.valid ? f.c : null;
+}
+
+const CLOSE_END = 0.3;
+const QUIT_BUTTON = [MAIN_W / 2 + 112, MAIN_H / 2 + 52];
+
+/** Quitting: the dialog over the frozen game, a click on Quit, the window folding into the taskbar. */
+function drawClosing(ctx, g, frame, c) {
+  const from = g.game;
+  const k = GAME_ORDER.indexOf(from);
+  const tx = MAIN_W / 2 - GAME_ORDER.length * 28 + k * 56 + 18, ty = MAIN_H - 24;
+  if (c < 0.5) {
+    ctx.drawImage(frame, 0, 0);
+    const d = clamp01(c / 0.12);
+    ctx.fillStyle = `rgba(0,0,0,${0.5 * d})`; ctx.fillRect(0, 0, MAIN_W, MAIN_H);
+    ctx.globalAlpha = d;
+    rrect(ctx, MAIN_W / 2 - 240, MAIN_H / 2 - 100, 480, 200, 10); ctx.fillStyle = '#1c1e24'; ctx.fill();
+    text(ctx, `Quit ${GAMES[from].short}?`, MAIN_W / 2, MAIN_H / 2 - 36, { size: 32, weight: 700, align: 'center', color: '#fff' });
+    text(ctx, 'Unsaved progress will be lost.', MAIN_W / 2, MAIN_H / 2 - 2, { size: 16, weight: 500, align: 'center', color: '#9aa0aa' });
+    const pressed = c > 0.36 && c < 0.46;
+    rrect(ctx, MAIN_W / 2 - 202, MAIN_H / 2 + 30, 180, 44, 6); ctx.fillStyle = '#2c2f37'; ctx.fill();
+    text(ctx, 'Cancel', MAIN_W / 2 - 112, MAIN_H / 2 + 59, { size: 17, weight: 600, align: 'center', color: '#c8ccd2' });
+    rrect(ctx, QUIT_BUTTON[0] - 90, QUIT_BUTTON[1] - 22, 180, 44, 6); ctx.fillStyle = pressed ? '#a8321f' : '#d4432a'; ctx.fill();
+    text(ctx, 'Quit', QUIT_BUTTON[0], QUIT_BUTTON[1] + 7, { size: 17, weight: 700, align: 'center', color: '#fff' });
+    ctx.globalAlpha = 1;
+    const m = smooth(clamp01((c - 0.1) / 0.26));
+    drawCursor(ctx, MAIN_W / 2 + (QUIT_BUTTON[0] - MAIN_W / 2) * m, MAIN_H / 2 + 40 + (QUIT_BUTTON[1] - MAIN_H / 2 - 40) * m);
+    return;
+  }
+  // the window folds down into its taskbar button
+  const s = smooth((c - 0.5) / 0.5);
+  const w = MAIN_W * (1 - s * 0.97), h = MAIN_H * (1 - s * 0.97);
+  const x = (tx - w / 2) * s, y = (ty - h / 2) * s;
+  ctx.globalAlpha = 1 - s * 0.7;
+  ctx.drawImage(frame, x, y, w, h);
+  ctx.globalAlpha = 1;
+  drawCursor(ctx, QUIT_BUTTON[0], QUIT_BUTTON[1]);
+}
+
 function drawSwitching(ctx, g, t) {
   const p = g.phaseProgress;
+  const frame = g.switchFrom !== PHASES.RAGE_QUIT ? closingFrame(ctx, g) : null;
   const to = g.nextGame ?? g.game;
   const k = GAME_ORDER.indexOf(to);
   const target = [80 + Math.floor(k / 5) * 112, 40 + (k % 5) * 104 + 30];
-  const move = smooth(clamp01(p / 0.5));
-  const cursor = [MAIN_W / 2 + (target[0] - MAIN_W / 2) * move, MAIN_H / 2 + (target[1] - MAIN_H / 2) * move];
-  drawDesktop(ctx, g, t, { cursor, focus: p > 0.45 ? to : null });
+  const start = frame ? QUIT_BUTTON : [MAIN_W / 2, MAIN_H / 2];
+  const move = frame ? smooth(clamp01((p - CLOSE_END) / 0.24)) : smooth(clamp01(p / 0.5));
+  const cursor = [start[0] + (target[0] - start[0]) * move, start[1] + (target[1] - start[1]) * move];
+  drawDesktop(ctx, g, t, { cursor: frame && p < CLOSE_END ? null : cursor, focus: p > 0.5 ? to : null });
+  if (frame && p < CLOSE_END) drawClosing(ctx, g, frame, p / CLOSE_END);
   if (p > 0.62) {
     // the splash of the next game
     const s = clamp01((p - 0.62) / 0.2);
@@ -1253,11 +1338,12 @@ function drawScoreboard(ctx, g, top) {
     text(ctx, 'RANKED', 20, top + 32, { size: 16, weight: 800, color: '#8a8f98' });
     GAME_ORDER.forEach((id, k) => {
       const c = g.career[id];
-      const y = top + 58 + k * 74;
-      drawGameIcon(ctx, id, 20, y, 50);
-      text(ctx, GAMES[id].short, 84, y + 20, { size: 18, weight: 700, color: '#f2f3f5' });
-      text(ctx, formatRank(id, c.rank), 84, y + 44, { size: 15, weight: 600, color: '#c8ccd2' });
-      text(ctx, `${c.wins}W ${c.losses}L${c.rageQuits ? ` · ${c.rageQuits} rage-quit${c.rageQuits > 1 ? 's' : ''}` : ''}`, W - 20, y + 32, { size: 14, weight: 600, align: 'right', color: c.rageQuits ? '#f27a6a' : '#949ba4' });
+      const step = (SIDE_H - top - 58) / GAME_ORDER.length;
+      const y = top + 48 + k * step;
+      drawGameIcon(ctx, id, 20, y, 29);
+      text(ctx, GAMES[id].short, 61, y + 13, { size: 13, weight: 700, color: '#f2f3f5' });
+      text(ctx, formatRank(id, c.rank), 61, y + 30, { size: 11, weight: 600, color: '#c8ccd2' });
+      text(ctx, `${c.wins}W ${c.losses}L`, W - 20, y + 22, { size: 13, weight: 600, align: 'right', color: '#949ba4' });
     });
     return;
   }
@@ -1275,9 +1361,9 @@ function drawScoreboard(ctx, g, top) {
     });
     return;
   }
-  const title = game === 'cs2' ? `SCOREBOARD · ROUND ${m.round}` : game === 'fortnite' ? `SQUAD · ${m.players} LEFT` : game === 'minecraft' ? 'SERVER · NIGHT ' + Math.round(m.night * 100) + '%' : `SCOREBOARD · ${mmss(m.t * 20 + 180)}`;
+  const title = game === 'cs2' || game === 'r6' ? `SCOREBOARD · ROUND ${m.round}` : game === 'fortnite' ? `SQUAD · ${m.players} LEFT` : game === 'minecraft' ? 'SERVER · NIGHT ' + Math.round(m.night * 100) + '%' : `SCOREBOARD · ${mmss(m.t * 20 + 180)}`;
   text(ctx, title, 20, top + 30, { size: 15, weight: 800, color: '#8a8f98' });
-  if (game === 'cs2') text(ctx, `${m.rounds.us} : ${m.rounds.them}`, W - 20, top + 30, { size: 18, weight: 800, align: 'right', color: '#f2f3f5' });
+  if (game === 'cs2' || game === 'r6') text(ctx, `${m.rounds.us} : ${m.rounds.them}`, W - 20, top + 30, { size: 18, weight: 800, align: 'right', color: '#f2f3f5' });
   const cols = game === 'minecraft' ? ['mobs', 'deaths', '💎'] : ['K', 'D', 'A'];
   const cx = [W - 150, W - 95, W - 40];
   cols.forEach((c, k) => text(ctx, c, cx[k], top + 58, { size: 13, weight: 700, align: 'center', color: '#8a8f98' }));

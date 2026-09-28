@@ -80,6 +80,40 @@ export class Sound {
 
   now() { return this.ctx.currentTime; }
 
+  /** The key turns and the latches let go. */
+  caseUnlock() {
+    this.burst({ freq: 3200, q: 4, dur: 0.035, gain: 0.09 });
+    this.burst({ at: 0.05, freq: 1400, q: 2, dur: 0.06, gain: 0.08 });
+    this.tone({ at: 0.08, freq: 170, to: 70, dur: 0.3, gain: 0.12 });
+    this.burst({ at: 0.18, freq: 700, q: 0.8, dur: 0.35, gain: 0.05, decay: 2 });
+  }
+
+  /** One card past the marker: a short plastic click, softer while the reel is a blur. */
+  caseTick(speed = 0) {
+    const g = 0.05 * (speed > 12 ? 0.55 : 1);
+    this.burst({ freq: 2900, q: 6, dur: 0.016, gain: g, decay: 1.4 });
+    this.tone({ freq: 820, to: 520, dur: 0.02, gain: g * 0.6 });
+  }
+
+  /** The reel stops. */
+  caseLand() {
+    this.tone({ freq: 120, to: 60, dur: 0.18, gain: 0.08 });
+    this.burst({ freq: 1800, q: 3, dur: 0.03, gain: 0.05 });
+  }
+
+  /** The item shows: a brighter chord the rarer it is, and a shimmer for gold. */
+  caseReveal(rarity) {
+    const tier = { milspec: 0, restricted: 1, classified: 2, covert: 3, rare: 4 }[rarity] ?? 0;
+    this.tone({ freq: 98, to: 49, dur: 0.45, gain: 0.1 });
+    [261.63, 329.63, 392, ...(tier >= 2 ? [523.25] : []), ...(tier >= 3 ? [659.25] : [])].forEach((freq, i) => {
+      this.tone({ at: i * 0.06, freq: freq * (tier >= 3 ? 1.5 : 1), dur: 0.55 + tier * 0.18, gain: 0.04 });
+    });
+    if (tier >= 4) {
+      this.burst({ at: 0.1, freq: 5200, q: 0.6, dur: 1.1, gain: 0.05, type: 'highpass', decay: 1.2 });
+      [1046.5, 1318.5, 1568, 2093].forEach((freq, i) => this.tone({ at: 0.35 + i * 0.09, freq, dur: 0.5, gain: 0.025 }));
+    }
+  }
+
   /** One-shot noise burst through a band — the workhorse for clicks and clunks. */
   burst({ at = 0, dur = 0.08, freq = 1200, q = 4, gain = 0.4, type = 'bandpass', decay = 3 } = {}) {
     if (!this.ready || this.muted) return;

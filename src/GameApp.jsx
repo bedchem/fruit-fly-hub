@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameScene } from './scene/GameScene.jsx';
 import { Gamer, PHASES } from './game/gamer.js';
 import { sound } from './audio/audio.js';
@@ -17,6 +17,9 @@ import { SiteMenu, LabHome } from './ui/SiteMenu.jsx';
 import { useSound } from './ui/useSound.js';
 import site from '../site.config.js';
 import { Loader } from './ui/Loader.jsx';
+import { GameCases } from './ui/GameCases.jsx';
+import { GameMonitor } from './ui/GameMonitor.jsx';
+import { preloadGamePainter } from './scene/gamePainters.js';
 
 const SLIP_MS = 2000;
 
@@ -32,19 +35,25 @@ function readSeed() {
   return 1 + Math.floor(Math.random() * 1e6);
 }
 
-/** The gaming setup: the fly plays seven games, and rages. One of the Fly Lab experiments. */
+/** The gaming setup: the fly plays eight games, opens CS2 cases, and rages. One of the Fly Lab experiments. */
 export default function GameApp() {
   const gamerRef = useRef(null);
   const eventRef = useRef(() => {});
   if (!gamerRef.current) {
-    gamerRef.current = new Gamer({ seed: readSeed(), onEvent: (t, d) => eventRef.current(t, d) });
+    let inventoryStorage = null;
+    try { inventoryStorage = window.localStorage; } catch { /* blocked storage: this visit only */ }
+    gamerRef.current = new Gamer({ seed: readSeed(), inventoryStorage, onEvent: (t, d) => eventRef.current(t, d) });
   }
   const gamer = gamerRef.current;
+  useEffect(() => { preloadGamePainter(gamer.game).catch(() => {}); }, [gamer]);
   if (import.meta.env.DEV) window.__gamer = gamer;
 
   const [ui, setUi] = useState({ phase: gamer.phase, result: null, history: [], slams: 0, rageQuits: 0 });
   const { muted, toggleSound } = useSound();
   const [howOpen, setHowOpen] = useState(false);
+  const [watching, setWatching] = useState(false);
+  const watch = useCallback(() => setWatching(true), []);
+  const unwatch = useCallback(() => setWatching(false), []);
   const closeHow = useCallback(() => setHowOpen(false), []);
   const lastShotSound = useRef(0);
 
@@ -52,10 +61,21 @@ export default function GameApp() {
     const g = gamerRef.current;
     const game = g?.match?.game ?? g?.game;
     switch (type) {
+      case 'caseUnlock': sound.caseUnlock(); break;
+      case 'caseTick': sound.caseTick(d.speed); break;
+      case 'caseDrop': sound.caseLand(); break;
+      case 'caseReveal': sound.caseReveal(d.skin.rarity); break;
+      case 'queue': preloadGamePainter(d.game).catch(() => {}); break;
+      case 'switch': preloadGamePainter(d.to).catch(() => {}); break;
+      case 'siegeBreach': sound.boom(); sound.crunch(); break;
+      case 'siegeReload': sound.clack(3); break;
+      case 'siegePlantStart': sound.click(); break;
+      case 'siegePlant': sound.ping(); sound.tone({ freq: 720, dur: .3, gain: .07 }); break;
+      case 'siegePrep': case 'siegeAction': sound.queuePop(); break;
       case 'shot': {
         // the rifle every shot, the rest now and then
         const now = performance.now();
-        if (game === 'cs2' || game === 'fortnite' || game === 'rdr2') sound.gunshot();
+        if (game === 'cs2' || game === 'fortnite' || game === 'rdr2' || game === 'r6') sound.gunshot();
         else if (now - lastShotSound.current > 300) { if (game === 'lol') sound.cast(); else sound.swing(); }
         lastShotSound.current = now;
         sound.click();
@@ -129,6 +149,7 @@ export default function GameApp() {
           </header>
 
           <GameHud gamerRef={gamerRef} ui={ui} />
+          <GameCases gamerRef={gamerRef} onWatch={watch} watching={watching} />
 
           <SiteMenu
             muted={muted}
@@ -145,6 +166,7 @@ export default function GameApp() {
       </div>
 
       <aside className="panel">
+        <GameMonitor gamerRef={gamerRef} open={watching} onOpen={watch} onClose={unwatch} />
         <Connectome machineRef={gamerRef} store={cnsStore} ready={cnsReady} />
         <GameVision gamerRef={gamerRef} store={cnsStore} ready={cnsReady} />
         <GameLeague gamerRef={gamerRef} />
@@ -161,10 +183,14 @@ export default function GameApp() {
             {' '}by <a href="https://sketchfab.com/Yolala3d" target="_blank" rel="noopener">Yolala3D | Y3D</a>
             {' '}(<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>; geometry, textures and materials optimized). Energy drink:{' '}
             <a href="https://sketchfab.com/3d-models/monster-ultra-white-542dc45df0774f41ab67d96bf99b332f" target="_blank" rel="noopener">Monster Ultra White</a>
-            {' '}by prajwalk12 (Sketchfab Standard license). League of Legends, Minecraft, Fortnite, Counter-Strike 2, Red Dead Redemption 2 and
-            God of War belong to Riot Games, Mojang Studios / Microsoft, Epic Games, Valve, Rockstar Games and Sony
-            Interactive Entertainment, and Monster Energy to Monster Energy Company; the screens here are drawn by us,
-            and none of them is affiliated with this page.
+            {' '}by prajwalk12 (Sketchfab Standard license). League of Legends, Minecraft, Fortnite, Counter-Strike 2, Red Dead Redemption 2,
+            God of War and Rainbow Six Siege belong to Riot Games, Mojang Studios / Microsoft, Epic Games, Valve, Rockstar Games, Sony
+            Interactive Entertainment and Ubisoft, and Monster Energy to Monster Energy Company. Gameplay screens are drawn by us;
+            CS2 skin artwork belongs to Valve and contributing artists, with metadata from{' '}
+            <a href="https://github.com/ByMykel/CSGO-API" target="_blank" rel="noopener">ByMykel/CSGO-API</a>.
+            {' '}Blue Gem pattern renders: <a href="https://skinory.io" target="_blank" rel="noopener">Skinory</a>.
+            {' '}Lodge materials: <a href="https://polyhaven.com" target="_blank" rel="noopener">Poly Haven</a>, CC0.
+            {' '}None of them is affiliated with this page.
           </p>
           <a className="source" href={site.repository} target="_blank" rel="noopener">
             <GitHubIcon /> Open source on GitHub

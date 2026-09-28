@@ -14,7 +14,7 @@ import { Canvas, useFrame, useThree, advance } from '@react-three/fiber';
 import { ContactShadows, AdaptiveDpr, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { Fly } from './Fly.jsx';
-import { Stool, StudioProbe } from './BarScene.jsx';
+import { Stool, StudioProbe } from './studio.jsx';
 import { flyToWorld } from './layout.js';
 import { HAND } from './flyRig.js';
 import { DESK, MONITOR, MONITORS, BUTTONS, SCREEN_GAZE, TRADE_CAMERA, pressPoint, gazeAt } from './tradeLayout.js';

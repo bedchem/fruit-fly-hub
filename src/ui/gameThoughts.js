@@ -8,11 +8,48 @@
  */
 import { PHASES } from '../game/gamer.js';
 import { GAMES } from '../game/games.js';
+import { SKIN_BY_ID } from '../game/cases.js';
 
 const HOLD_MS = 4800;
 const RECENT_MS = 3200;
 
+/** The case on its monitor has shown what came out, and the tier is one of these. */
+function revealed(g, tier) {
+  const o = g.phase === PHASES.CASE_OPENING && !g.cases.active?.summary ? g.cases.active?.opening : null;
+  return !!o?.revealed && tier(SKIN_BY_ID[o.item.skinId].rarity);
+}
+
 const SITUATIONS = [
+  {
+    key: 'siege-drone', urgent: false,
+    when: (g) => g.game === 'r6' && g.match?.siege?.drone,
+    lines: ['Eight hundred eyes. One very small drone.', 'Drone first. Every room. Every angle.', 'I can see the bomb. They cannot see me. Probably.'],
+  },
+  {
+    key: 'siege-plant', urgent: true,
+    when: (g) => g.game === 'r6' && ['planting', 'planted'].includes(g.match?.siege?.phase),
+    lines: ['Cover me. Planting.', 'The timer is louder than the headset.', 'Six legs and somehow only one can hold the defuser.'],
+  },
+  {
+    key: 'case-gold', urgent: true,
+    when: (g) => revealed(g, (r) => r === 'rare'),
+    lines: ['GOLD. GOLD. I SAW THE GOLD CARD.', 'A knife. On six legs. I will hold it with all of them.', 'Screenshot. Somebody screenshot this.'],
+  },
+  {
+    key: 'case-good', urgent: true,
+    when: (g) => revealed(g, (r) => r === 'covert' || r === 'classified'),
+    lines: ['Pink. Or red. Either way, mine.', 'That is going straight on the loadout.', 'The case likes me today.'],
+  },
+  {
+    key: 'case-blue', urgent: false,
+    when: (g) => revealed(g, (r) => r === 'milspec' || r === 'restricted'),
+    lines: ['Blue. Again. The case knows.', 'It is fine. It is a nice blue.', 'One more. Just one more.'],
+  },
+  {
+    key: 'cases', urgent: true,
+    when: (g) => g.phase === PHASES.CASE_OPENING,
+    lines: ['Surely this one is gold.', 'Six legs. One key. Absolutely no patience.', 'The little blue ones are following me.', 'Just watching it slow down. Just watching.'],
+  },
   {
     key: 'ragequit', urgent: true,
     when: (g) => g.phase === PHASES.RAGE_QUIT,

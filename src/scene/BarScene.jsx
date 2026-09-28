@@ -6,19 +6,19 @@
  * The glass, stool and tin remain live props; one frame loop advances the
  * simulation without making React re-render the room every frame.
  */
-import { Suspense, forwardRef, useEffect, useMemo, useRef } from 'react';
+import { Suspense, forwardRef, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree, advance } from '@react-three/fiber';
 import { ContactShadows, AdaptiveDpr, PerspectiveCamera } from '@react-three/drei';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 import * as THREE from 'three';
 import { Fly } from './Fly.jsx';
-import { STOOL, flyToWorld } from './layout.js';
+import { flyToWorld } from './layout.js';
 import { HAND } from './flyRig.js';
 import {
   BAR_CAMERA, BAR_FLY, COUNTER, GLASS, TIN, TIN_GRIP, STRAW_TIP, DRINK_GLASS_BASE, MOUTH_LOCAL, MOUTH, LIP_OFFSET,
 } from './barLayout.js';
 import { OldBar } from './OldBar.jsx';
+import { StudioProbe } from './studio.jsx';
 import { BarCamera } from './BarCamera.jsx';
 import { PHASES, POUCH_WEAR_MIN } from '../game/bar.js';
 import { sound } from '../audio/audio.js';
@@ -118,54 +118,6 @@ function Lights({ bar, dopamineRef }) {
       <pointLight ref={lamp} position={[0.62, 2.35, -0.05]} intensity={7} distance={3.2} decay={2} color="#ffb867" />
       <pointLight position={[-0.9, 1.9, -1.2]} intensity={2.2} distance={4} decay={2} color="#ff7a3d" />
     </>
-  );
-}
-
-export function StudioProbe() {
-  const { gl, scene } = useThree();
-  useEffect(() => {
-    const pmrem = new THREE.PMREMGenerator(gl);
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04);
-    scene.environment = env.texture;
-    scene.environmentIntensity = 0.3;
-    return () => { env.texture.dispose(); pmrem.dispose(); scene.environment = null; };
-  }, [gl, scene]);
-  return null;
-}
-
-// --------------------------------------------------------------- furniture
-
-const BRASS = { color: '#c9954b', roughness: 0.3, metalness: 0.9 };
-
-/** A plain bar stool under the fly, where the casino's stool stood; `offset` moves it for a second fly. */
-export function Stool({ offset = [0, 0, 0] }) {
-  const x = STOOL.origin[0] + offset[0];
-  const z = STOOL.origin[2] + offset[2];
-  const seatY = STOOL.seatCenter[1];
-  const r = STOOL.seatRadius;
-  return (
-    <group position={[x, 0, z]}>
-      <mesh position={[0, seatY - 0.035, 0]} castShadow receiveShadow>
-        <cylinderGeometry args={[r, r * 0.96, 0.07, 40]} />
-        <meshStandardMaterial color="#7a1f1c" roughness={0.5} />
-      </mesh>
-      <mesh position={[0, seatY - 0.09, 0]} castShadow>
-        <cylinderGeometry args={[r * 0.55, r * 0.35, 0.05, 32]} />
-        <meshStandardMaterial {...BRASS} />
-      </mesh>
-      <mesh position={[0, (seatY - 0.1) / 2, 0]} castShadow>
-        <cylinderGeometry args={[0.025, 0.025, seatY - 0.1, 16]} />
-        <meshStandardMaterial {...BRASS} />
-      </mesh>
-      <mesh position={[0, 0.3, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <torusGeometry args={[r * 0.8, 0.012, 10, 40]} />
-        <meshStandardMaterial {...BRASS} />
-      </mesh>
-      <mesh position={[0, 0.012, 0]} receiveShadow castShadow>
-        <cylinderGeometry args={[r * 1.05, r * 1.15, 0.024, 40]} />
-        <meshStandardMaterial {...BRASS} />
-      </mesh>
-    </group>
   );
 }
 

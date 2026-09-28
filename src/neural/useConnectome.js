@@ -11,6 +11,17 @@ import { parseGraph, parseNeurons } from './simulation.js';
 import { Brain } from './brain.js';
 import graphMeta from './cnsGraph.js';
 
+// Reuse in-flight bytes across StrictMode remounts; each fly still gets its own brain.
+let assetPromise;
+function loadAssets() {
+  assetPromise ??= Promise.all(['/data/graph.bin', '/data/neurons.bin'].map(async (url) => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`${url}: ${response.status}`);
+    return response.arrayBuffer();
+  })).catch((error) => { assetPromise = null; throw error; });
+  return assetPromise;
+}
+
 /** `BrainClass` is the coupling to use: the casino's Brain, or the bar's. */
 export function useConnectome(machineRef, BrainClass = Brain) {
   const [ready, setReady] = useState(false);
@@ -19,10 +30,7 @@ export function useConnectome(machineRef, BrainClass = Brain) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const [gBuf, nBuf] = await Promise.all([
-        fetch('/data/graph.bin').then((r) => r.arrayBuffer()),
-        fetch('/data/neurons.bin').then((r) => r.arrayBuffer()),
-      ]);
+      const [gBuf, nBuf] = await loadAssets();
       if (!alive) return;
       const graph = parseGraph(gBuf);
       const neurons = parseNeurons(nBuf);
