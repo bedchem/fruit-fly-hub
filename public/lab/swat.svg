@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <title>A fruit fly jumping out of a puddle of spilled beer on a pub table as a red fly swatter comes down</title>
+  <defs>
+    <pattern id="grid" width="9" height="9" patternUnits="userSpaceOnUse">
+      <rect width="9" height="9" fill="#d8342a"/>
+      <rect x="2" y="2" width="5" height="5" fill="#2a1a10" fill-opacity="0.8"/>
+    </pattern>
+    <radialGradient id="lamp" cx="0.45" cy="0.55" r="0.7">
+      <stop offset="0" stop-color="#ffcf8a" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffcf8a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="beer" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#e6a33c"/>
+      <stop offset="1" stop-color="#a85f12"/>
+    </linearGradient>
+    <g id="fly">
+      <ellipse cx="-16" cy="-52" rx="11" ry="34" transform="rotate(-18 -16 -52)" fill="#fff" fill-opacity="0.35" stroke="#c98a4c" stroke-width="1.2"/>
+      <path d="M-4 -30 L-14 0 M2 -30 L6 2" stroke="#b25d1a" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <ellipse cx="-2" cy="-22" rx="16" ry="24" fill="#d9731f"/>
+      <path d="M-16 -26 Q-2 -22 13 -28 M-17 -16 Q-2 -12 14 -18 M-15 -6 Q-2 -3 12 -8" stroke="#a9541a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="4" cy="-56" rx="15" ry="14" fill="#e3872f"/>
+      <circle cx="17" cy="-76" r="11" fill="#e3872f"/>
+      <circle cx="22" cy="-78" r="6.5" fill="#b8321f"/>
+      <path d="M22 -86 l6 -8" stroke="#b25d1a" stroke-width="2" stroke-linecap="round"/>
+      <ellipse cx="-6" cy="-60" rx="9" ry="26" transform="rotate(-22 -6 -60)" fill="#fff" fill-opacity="0.45" stroke="#c98a4c" stroke-width="1.2"/>
+    </g>
+  </defs>
+  <rect width="400" height="260" fill="#2a1a10"/>
+  <!-- a pint in the background -->
+  <path d="M318 40 L360 40 L355 150 L323 150 Z" fill="url(#beer)" opacity="0.85"/>
+  <path d="M316 30 Q339 18 362 30 L360 44 L318 44 Z" fill="#fff6e2"/>
+  <path d="M316 30 L323 150 M362 30 L355 150" stroke="#fff" stroke-opacity="0.35" stroke-width="2" fill="none"/>
+  <circle cx="332" cy="120" r="1.6" fill="#ffe9b0"/><circle cx="341" cy="96" r="1.3" fill="#ffe9b0"/><circle cx="336" cy="72" r="1.1" fill="#ffe9b0"/>
+  <!-- the table -->
+  <rect y="150" width="400" height="110" fill="#5b3217"/>
+  <path d="M0 168 Q200 162 400 170 M0 196 Q200 190 400 198 M0 228 Q200 222 400 230" stroke="#3b1f0c" stroke-width="2" fill="none" opacity="0.7"/>
+  <ellipse cx="300" cy="206" rx="40" ry="9" fill="none" stroke="#3b1f0c" stroke-width="3" opacity="0.5"/>
+  <rect width="400" height="260" fill="url(#lamp)"/>
+  <!-- spilled beer, foam at the rim -->
+  <path d="M40 206 q20 -12 58 -8 q30 2 34 10 q-6 12 -44 12 q-44 0 -48 -14 z" fill="url(#beer)" opacity="0.92"/>
+  <g fill="#fff6e2"><circle cx="48" cy="203" r="2.4"/><circle cx="56" cy="200" r="1.8"/><circle cx="120" cy="203" r="2.2"/><circle cx="128" cy="208" r="1.6"/><circle cx="70" cy="217" r="1.8"/><circle cx="104" cy="218" r="2"/></g>
+  <ellipse cx="82" cy="204" rx="16" ry="2" fill="#fff" opacity="0.4"/>
+  <!-- the swatter's shadow, and the swatter coming down -->
+  <ellipse cx="190" cy="190" rx="62" ry="10" fill="#140802" opacity="0.45"/>
+  <path d="M252 132 L392 12" stroke="#cfd4da" stroke-width="5" stroke-linecap="round"/>
+  <path d="M352 46 L392 12" stroke="#c0392b" stroke-width="10" stroke-linecap="round"/>
+  <g transform="rotate(-14 190 140)" opacity="0.25">
+    <rect x="130" y="100" width="124" height="40" rx="6" fill="url(#grid)"/>
+  </g>
+  <g transform="rotate(-14 190 140)">
+    <rect x="130" y="118" width="124" height="40" rx="6" fill="url(#grid)" stroke="#a82219" stroke-width="4"/>
+  </g>
+  <!-- the fly, already airborne, wings a blur, a drop of beer flying off -->
+  <g transform="translate(96 146) rotate(-24) scale(0.62)">
+    <ellipse cx="-30" cy="-56" rx="34" ry="12" fill="#fff" fill-opacity="0.55"/>
+    <ellipse cx="22" cy="-60" rx="30" ry="10" fill="#fff" fill-opacity="0.45"/>
+    <use href="#fly"/>
+  </g>
+  <circle cx="112" cy="176" r="2.6" fill="#e6a33c"/><circle cx="124" cy="168" r="1.8" fill="#e6a33c"/>
+  <path d="M120 156 q20 14 44 20" stroke="#f6ead6" stroke-width="2" stroke-dasharray="3 5" fill="none" opacity="0.45"/>
+</svg>

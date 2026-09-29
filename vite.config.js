@@ -25,6 +25,7 @@ export default defineConfig({
         scroll: 'scroll/index.html',
         game: 'game/index.html',
         code: 'code/index.html',
+        swat: 'swat/index.html',
         about: 'about.html',
         legal: 'legal.html',
         notFound: '404.html',

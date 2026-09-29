@@ -77,6 +77,16 @@ export const PAGES = [
     priority: '0.9',
   },
   {
+    file: 'swat/index.html',
+    path: '/swat/',
+    title: 'Fruit Fly vs. the Swatter: a real fly brain escapes on its giant fibre | Fly Lab',
+    description:
+      'A real fruit fly CT scan drinks spilled beer on a pub table while a swatter comes down. The swatter head growing in its '
+      + 'eyes drives LPLC2 and LC4 on the MaleCNS connectome, the giant fibre DNp01 decides when it jumps — and ethanol slows it.',
+    changefreq: 'monthly',
+    priority: '0.9',
+  },
+  {
     file: 'about.html',
     path: '/about.html',
     title: 'How it works: a fruit fly connectome simulation | Fly Lab',
