@@ -28,6 +28,7 @@ The site is **Fly Lab**: a hub at `/` with one tile per experiment, all built on
 | `/scroll/` | **Two Flies Doomscrolling**, see [Doomscrolling](#doomscrolling) |
 | `/game/` | **Fruit Fly Gamer**, see [The gamer](#the-gamer) |
 | `/code/` | **Fruit Fly Codes POKYH**, see [The coder](#the-coder) |
+| `/swat/` | **Fruit Fly vs. the Swatter**, see [The swatter](#the-swatter) |
 
 New experiments get a page folder (`<name>/index.html`), an entry in `src/entries/`, a Vite input in `vite.config.js`, a row in `seo/content.js`, and a tile in `index.html`.
 
@@ -177,6 +178,17 @@ The sixth experiment, at `/code/`. The fly spends the night at a wooden desk in 
 - **Sleep.** Sleep pressure and the small hours drive the dorsal fan-shaped body (the FB6 types), whose answer is the sleep drive it nods off on (Donlea et al. 2011, 2014). A nod is a loom on LPLC2/LC4. If the giant fibre fires it jerks awake; if not, it sleeps on the keys until sunrise.
 - **Caffeine.** Modelled like the bar's drugs: absorption, a half-life, tolerance, jitters and a crash. It cuts the sleep drive, drives PAM and raises dopaminergic gain (Nall et al. 2016). It is bitter, and every sip drives the gustatory neurons and PPL1 (Lee et al. 2009), less as the taste becomes familiar.
 - **The room.** Six CC0 Poly Haven props (`tools/fetch-polyhaven.mjs`), compressed to about 2 MB; everything else is procedural.
+
+## The swatter
+
+The seventh experiment, at `/swat/`. The fly stands on a pub table drinking spilled beer. A hand with a fly swatter waits, closes in, hovers, sometimes feints, and swings. Nobody controls either of them.
+
+- **The escape is the connectome's.** Every frame `src/game/swatter.js` works out how big the swatter head is in the fly's eyes and how fast it grows. That drives LPLC2 and LC4, which converge on the giant fibre DNp01; only DNp01 crossing threshold in the simulation makes the fly jump. Because looming detectors answer to expansion, it fires at a roughly constant time before contact, so escapes are mostly last-moment (30–130 ms before impact).
+- **Long mode and short mode** (von Reyn et al. 2014). Rising looming lets it prepare (it raises its body and leans away) and take off stable and away from the threat. A fast swing fires the giant fibre before the posture is ready: a quicker, tumbling, badly aimed jump.
+- **Beer.** It drinks through its proboscis, and ethanol acts through the bar's `pharmacology.js`: GABA synapses stronger, acetylcholine and glutamate weaker. The looming pathway is mostly cholinergic, so a drunk fly's giant fibre fires later. The model is applied at 40% here, because at full strength the giant fibre never reaches threshold past about 0.6 per mille. It also sways, walks crooked, lands badly and passes out at about 1.6 per mille.
+- **Both sides learn.** Near misses and hits reach the mushroom body through PPL1, which turns up its looming pathway. Every miss makes the hand swing faster and aim ahead, where flies jump; a hit settles it.
+- **Slow motion.** The end of every swing plays slowed, and the brain is slowed with it, so the outcome is the same as at full speed.
+- **The table** is primitives and canvas textures only: no model to download. `node tools/sim-swat.mjs 8 1` plays eight headless minutes. Typical runs: about a quarter of swings hit, peaks around 1.5 per mille, at most one blackout.
 
 ## Run it locally
 

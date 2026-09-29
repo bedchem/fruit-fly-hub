@@ -1,0 +1,65 @@
+/* The kitchen table: a light venue, like the casino. */
+
+.swatbank { min-width: 15.5rem; max-width: 18rem; }
+.swat-score { display: flex; gap: 1.1rem; }
+.swat-score > div { display: grid; justify-items: end; }
+.swat-score b { font-size: 1.9rem; font-weight: 600; line-height: 1; letter-spacing: -0.03em; color: #2f8a4f; font-variant-numeric: tabular-nums; }
+.swat-score .hits b { color: var(--alarm); }
+.swat-score span { font-size: 0.72rem; color: var(--ink-3); }
+
+.swat-line { margin: 0; display: grid; justify-items: end; gap: 0.05rem; text-align: right; }
+.swat-line span { font-size: 0.66rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.swat-line b { font-size: 0.82rem; font-weight: 500; color: var(--ink); }
+.swat-hand[data-state='swing'] { color: var(--alarm); font-weight: 700; letter-spacing: 0.08em; }
+.swat-hand[data-state='hover'] { color: var(--accent); }
+
+.swat-skill { width: 100%; grid-template-columns: 5.6rem 1fr; }
+.swat-skill .vital-track i { background: var(--alarm); }
+
+.runlog.swatlog i.w { background: #2f8a4f; }
+.runlog.swatlog i.n { background: var(--alarm); opacity: 0.45; }
+.runlog.swatlog i.x { background: var(--alarm); height: 21px; }
+.runlog.swatlog i.o { background: var(--track-2); }
+.runlog.swatlog i.e { background: transparent; box-shadow: inset 0 0 0 1px #2f8a4f; }
+
+/* the giant fibre: thin mark where it prepares, thick where it jumps */
+.swat-gf .vital-track s { left: 50%; width: 3px; }
+.swat-gf .vital-track u { position: absolute; left: 22.5%; top: -2px; bottom: -2px; width: 1px; background: var(--ink-3); }
+.swat-gf .vital-track i { transition: background 0.1s; }
+.swat-gf[data-state='prep'] .vital-track i { background: var(--accent); }
+.swat-gf[data-state='rest'] .vital-track i { background: var(--ink-3); }
+
+.swat-circuit .vital-track i { transition: width 60ms linear; }
+
+.swatslip.win .stamp { color: #2f8a4f; }
+.swatslip.near .stamp { color: var(--accent); }
+.swatslip.loss .stamp { color: var(--alarm); }
+.swatslip.open .stamp { color: var(--ink-2); }
+.swat-toast { pointer-events: none; }
+
+/* the slips sit low, clear of the score card */
+.venue-swat .slip { top: auto; bottom: calc(var(--gutter) + 3.6rem); }
+.venue-swat .slip.broke { bottom: calc(var(--gutter) + 3.6rem); }
+@media (max-width: 760px) {
+  .venue-swat .slip { bottom: 4.2rem; max-width: calc(100% - 1.8rem); min-width: 0; }
+}
+
+/* on a phone the card keeps the score and what the fly is doing */
+@media (max-width: 560px) {
+  .swatbank { min-width: 0; max-width: 10.5rem; gap: 0.35rem; padding: 0.6rem 0.75rem; }
+  .swatbank .swat-score b { font-size: 1.4rem; }
+  .swatbank .swat-line:nth-of-type(2), .swatbank .swat-skill, .swatbank .history { display: none; }
+  .swatbank .swat-line b { font-size: 0.74rem; }
+}
+
+/* the pub is dark; the lamp pools in the middle */
+.venue-swat .stage { position: relative; }
+.swat-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 75% 70% at 45% 55%, transparent 55%, rgba(12, 5, 0, 0.55) 100%);
+  transition: opacity 0.25s ease, background 0.25s ease;
+}
+/* slow motion: the edges close in */
+.slowmo .swat-vignette { background: radial-gradient(ellipse 60% 55% at 45% 55%, transparent 35%, rgba(12, 5, 0, 0.85) 100%); }
+.swat-bac .vital-track i { background: linear-gradient(90deg, #e9c46a, #c77d1c 60%, #8a2a0c); }
+.swat-out .stamp { color: #c77d1c; }

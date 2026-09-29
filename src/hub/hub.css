@@ -106,6 +106,7 @@ a.lab-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px
 .lab-thumb.night { background: #0d1119; }
 .lab-thumb.rgb { background: #12101a; }
 .lab-thumb.cozy { background: #1e1612; }
+.lab-thumb.pub { background: #2a1a10; }
 .lab-thumb img { display: block; width: 100%; height: 100%; transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1); }
 a.lab-card:hover .lab-thumb img { transform: scale(1.05); }
 .lab-num {
