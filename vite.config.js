@@ -26,6 +26,7 @@ export default defineConfig({
         game: 'game/index.html',
         code: 'code/index.html',
         swat: 'swat/index.html',
+        sixseven: '67/index.html',
         about: 'about.html',
         legal: 'legal.html',
         notFound: '404.html',
