@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260">
+  <title>Damian, a fruit fly with a middle parting at a school desk, weighing both palms up and down while a chalk 6 and 7 pop over his shoulders; on the blackboard behind him, 58 + 9 = 67</title>
+  <defs>
+    <g id="fly">
+      <ellipse cx="-16" cy="-52" rx="11" ry="34" transform="rotate(-18 -16 -52)" fill="#fff" fill-opacity="0.35" stroke="#c98a4c" stroke-width="1.2"/>
+      <ellipse cx="-2" cy="-22" rx="16" ry="24" fill="#d9731f"/>
+      <path d="M-16 -26 Q-2 -22 13 -28 M-17 -16 Q-2 -12 14 -18 M-15 -6 Q-2 -3 12 -8" stroke="#a9541a" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="4" cy="-56" rx="15" ry="14" fill="#e3872f"/>
+      <circle cx="17" cy="-76" r="11" fill="#e3872f"/>
+      <circle cx="22" cy="-78" r="6.5" fill="#b8321f"/>
+      <ellipse cx="-6" cy="-60" rx="9" ry="26" transform="rotate(-22 -6 -60)" fill="#fff" fill-opacity="0.45" stroke="#c98a4c" stroke-width="1.2"/>
+    </g>
+  </defs>
+  <!-- the wall and the board -->
+  <rect width="400" height="260" fill="#e9e0cc"/>
+  <rect y="196" width="400" height="64" fill="#9bb3a1"/>
+  <rect x="26" y="22" width="348" height="150" rx="4" fill="#8a5a2b"/>
+  <rect x="34" y="30" width="332" height="134" fill="#2f4a3c"/>
+  <g font-family="'Segoe Print','Comic Sans MS',cursive" font-weight="700" fill="#f4f1e6">
+    <text x="60" y="92" font-size="40">58 + 9</text>
+    <text x="60" y="142" font-size="44" fill="#f6dd7a">= 67</text>
+    <text x="356" y="56" font-size="16" text-anchor="end" fill="#f08a7a">Damian</text>
+  </g>
+  <path d="M60 150 l104 -3" stroke="#f6dd7a" stroke-width="3" stroke-linecap="round"/>
+  <path d="M300 62 l-3 18 M310 62 l-3 18" stroke="#f08a7a" stroke-width="4" stroke-linecap="round"/>
+  <rect x="26" y="172" width="348" height="7" fill="#8a5a2b"/>
+  <!-- the desk -->
+  <rect x="150" y="214" width="220" height="12" rx="2" fill="#c99a5b"/>
+  <path d="M166 226 v34 M354 226 v34" stroke="#5d6670" stroke-width="6"/>
+  <!-- Damian, palms weighing: right up, left down -->
+  <g transform="translate(262 222) scale(1.05)">
+    <path d="M6 -40 L40 -62" stroke="#b25d1a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M-10 -36 L-42 -28" stroke="#b25d1a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M32 -66 l16 0" stroke="#b25d1a" stroke-width="4" stroke-linecap="round"/>
+    <path d="M-50 -30 l16 0" stroke="#b25d1a" stroke-width="4" stroke-linecap="round"/>
+    <use href="#fly"/>
+    <!-- the middle parting: two curtains of hair -->
+    <path d="M17 -89 q-13 0 -13 14 q5 -8 13 -9 z" fill="#3b2413"/>
+    <path d="M17 -89 q13 0 13 13 q-5 -7 -13 -8 z" fill="#3b2413"/>
+    <path d="M4 -76 q-3 8 0 13 M30 -77 q3 7 1 12" stroke="#3b2413" stroke-width="4" stroke-linecap="round" fill="none"/>
+  </g>
+  <!-- the chalk numerals popping over his shoulders -->
+  <g font-family="Inter,system-ui,sans-serif" font-weight="800" stroke="#fff7e8" stroke-width="5" paint-order="stroke">
+    <text x="196" y="156" font-size="54" fill="#de7a22">6</text>
+    <text x="318" y="124" font-size="54" fill="#2f6fb3">7</text>
+  </g>
+  <path d="M348 150 l0 -14 M210 176 l0 12" stroke="#2b241c" stroke-width="2.5" stroke-linecap="round" opacity="0.4"/>
+</svg>

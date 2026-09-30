@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!--site:head-->
+    <style>
+      /* the one loading screen: a bar and a percentage over the page colour.
+         It shows before any script arrives; Loader.jsx feeds it the real
+         progress of the models and the connectome and fades it out */
+      html, body { margin: 0; background: #e1d6c1; }
+      .boot {
+        position: fixed; inset: 0; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem;
+        background: #e1d6c1; transition: opacity 0.6s ease;
+      }
+      .boot-mark { display: flex; align-items: center; gap: 0.35em; font: 700 1.6rem/1 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: -0.03em; color: #2b241c; }
+      .boot-mark svg { width: 1.5em; height: 1.5em; }
+      .boot-row { display: flex; align-items: center; gap: 0.9rem; }
+      .boot-done { opacity: 0; pointer-events: none; }
+      .boot-track { width: min(16rem, 60vw); height: 6px; border-radius: 3px; background: rgba(151, 138, 117, 0.3); overflow: hidden; }
+      .boot-track i { display: block; height: 100%; border-radius: 3px; background: #de7a22; transform: scaleX(0); transform-origin: left; transition: transform 0.3s ease-out; }
+      .boot b { min-width: 4ch; font: 500 0.85rem ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace; color: #2b241c; font-variant-numeric: tabular-nums; }
+      /* what a crawler reads; the app replaces it when it mounts */
+      .prerender { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    </style>
+    <noscript><style>.boot { display: none; } .prerender { position: static; width: auto; height: auto; clip: auto; white-space: normal; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; font: 15px/1.55 system-ui, sans-serif; }</style></noscript>
+  </head>
+  <body>
+    <div id="root">
+      <main class="prerender">
+        <h1>Damian Says Six Seven</h1>
+        <p>
+          Damian is a real fruit fly CT scan with a middle parting, sitting in a classroom. Whenever a six and a seven turn up on the
+          board, reward dopamine rises in his brain, simulated on the MaleCNS connectome, and when it outruns what holds
+          it back he does it: six seven, palms up and down. The class laughs, the joke wears out, and the teacher keeps
+          count of the strikes.
+        </p>
+        <p><a href="/">Fly Lab</a> · <a href="/about.html">How it works</a> · <a href="/legal.html">Legal &amp; privacy</a></p>
+      </main>
+    </div>
+    <div id="boot" class="boot" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="boot-mark"><svg viewBox="0 0 48 48" aria-hidden="true"><ellipse cx="17" cy="22" rx="9" ry="15" transform="rotate(-35 17 22)" fill="#fff" fill-opacity="0.6" stroke="#c98a4c" stroke-width="1.4" /><ellipse cx="31" cy="22" rx="9" ry="15" transform="rotate(35 31 22)" fill="#fff" fill-opacity="0.6" stroke="#c98a4c" stroke-width="1.4" /><ellipse cx="24" cy="30" rx="7" ry="12" fill="#d9731f" /><path d="M18 29h12M18 34h12" stroke="#a9541a" stroke-width="2.2" stroke-linecap="round" /><circle cx="24" cy="15" r="6.5" fill="#e3872f" /><circle cx="20.5" cy="13.5" r="3" fill="#b8321f" /><circle cx="27.5" cy="13.5" r="3" fill="#b8321f" /></svg>Fly Lab</div>
+      <div class="boot-row"><div class="boot-track"><i></i></div><b>0%</b></div>
+    </div>
+    <script>
+      // Drives the bar until the app takes over through window.__boot. While
+      // the scripts download there is nothing to measure, so it creeps towards
+      // 30%; from there Loader.jsx reports the real progress. The bar itself
+      // eases by CSS transition, so a throttled timer never makes it crawl.
+      (function () {
+        var el = document.getElementById("boot"), bar = el.querySelector("i"), num = el.querySelector("b");
+        var start = performance.now(), real = 0;
+        function show(p) {
+          bar.style.transform = "scaleX(" + p / 100 + ")";
+          num.textContent = Math.round(p) + "%";
+          el.setAttribute("aria-valuenow", Math.round(p));
+        }
+        var timer = setInterval(function () {
+          show(Math.max(30 * (1 - Math.exp(-(performance.now() - start) / 1500)), real));
+        }, 50);
+        window.__boot = {
+          progress: function (p) { real = Math.max(real, 30 + p * 0.7); show(real); },
+          done: function () {
+            clearInterval(timer);
+            show(100);
+            setTimeout(function () { el.classList.add("boot-done"); }, 350);
+            setTimeout(function () { el.remove(); }, 1000);
+          },
+        };
+      })();
+    </script>
+    <noscript>
+      <p style="text-align:center;font-family:system-ui,sans-serif;color:#2b241c">
+        This piece needs JavaScript and WebGL. You can still read <a href="/about.html">how it works</a>.
+      </p>
+    </noscript>
+    <script type="module" src="/src/entries/sixseven.jsx"></script>
+  </body>
+</html>

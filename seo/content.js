@@ -87,6 +87,16 @@ export const PAGES = [
     priority: '0.9',
   },
   {
+    file: '67/index.html',
+    path: '/67/',
+    title: 'Damian Says Six Seven: a real fly brain and a classroom meme | Fly Lab',
+    description:
+      'Damian, a real fruit fly CT scan with a middle parting, sits in class. A six and a seven on the board raise reward dopamine on the '
+      + 'MaleCNS connectome until he does it: six seven. The class laughs, the joke wears out, the teacher counts strikes.',
+    changefreq: 'monthly',
+    priority: '0.9',
+  },
+  {
     file: 'about.html',
     path: '/about.html',
     title: 'How it works: a fruit fly connectome simulation | Fly Lab',

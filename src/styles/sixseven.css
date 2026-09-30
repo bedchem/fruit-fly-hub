@@ -1,0 +1,77 @@
+/* The classroom: a light venue, daylight on cream walls. */
+
+.sixbank { min-width: 15.5rem; max-width: 18rem; }
+.six-score { display: flex; align-items: flex-end; gap: 1.2rem; }
+.six-score b { display: flex; align-items: baseline; font-size: 2rem; font-weight: 700; line-height: 1; letter-spacing: -0.03em; color: var(--ink); font-variant-numeric: tabular-nums; }
+.six-score b em { margin: 0 0.15em 0 0.2em; font-style: normal; font-size: 1.1rem; font-weight: 500; color: var(--ink-3); }
+.six-6 { color: #de7a22; }
+.six-7 { color: #2f6fb3; }
+.six-strikes { display: grid; grid-template-columns: repeat(3, auto); gap: 0.1rem 0.3rem; justify-items: center; }
+.six-strikes i { width: 5px; height: 1.5rem; border-radius: 3px; background: var(--track-2); transform: rotate(8deg); transition: background 0.2s; }
+.six-strikes i[data-on='1'] { background: var(--alarm); }
+.six-strikes span { grid-column: 1 / -1; font-size: 0.66rem; color: var(--ink-3); }
+
+.six-line { margin: 0; display: grid; justify-items: end; gap: 0.05rem; text-align: right; }
+.six-line span { font-size: 0.66rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.six-line b { font-size: 0.82rem; font-weight: 500; color: var(--ink); }
+.six-doing[data-state='sixseven'] { color: #de7a22; font-weight: 800; letter-spacing: 0.06em; }
+.six-doing[data-state='detention'] { color: var(--alarm); }
+.six-teacher[data-state='watching'] { color: var(--alarm); }
+
+.six-fresh { width: 100%; grid-template-columns: 5.6rem 1fr; }
+.six-fresh .vital-track i { background: linear-gradient(90deg, #b9ad97, #e9a456 55%, #de7a22); }
+
+.runlog.sixlog i.w { background: #de7a22; }
+.runlog.sixlog i.o { background: var(--track-2); }
+.runlog.sixlog i.x { background: var(--alarm); height: 21px; }
+.runlog.sixlog i.e { background: transparent; box-shadow: inset 0 0 0 1px var(--ink-3); }
+.runlog.sixlog i.d { background: var(--ink); height: 21px; }
+
+/* what is on the board */
+.six-board { display: flex; flex-direction: column; gap: 0.45rem; }
+.six-tag { padding: 0.1rem 0.5rem; border-radius: 999px; background: var(--track); color: var(--ink-3); font-size: 0.68rem; font-weight: 600; }
+.six-tag[data-cue='1'] { background: var(--accent-soft); color: var(--accent); }
+.six-chalk {
+  margin: 0; padding: 0.7rem 0.85rem; min-height: 2.6rem;
+  border-radius: var(--radius-sm); background: #2f4a3c; color: #f4f1e6;
+  font: 600 1rem/1.3 "Segoe Print", "Comic Sans MS", "Bradley Hand", cursive;
+  box-shadow: inset 0 0 0 3px #8a5a2b;
+}
+
+/* the dopamine bar: the mark is the line he has to cross, and it moves */
+.six-urge .vital-track { position: relative; overflow: visible; }
+.six-urge .vital-track s { left: calc(var(--m, 0.42) * 100%); width: 3px; transition: left 0.15s ease; }
+.six-urge .vital-track i { background: var(--ink-3); transition: background 0.1s; }
+.six-urge[data-state='prep'] .vital-track i { background: var(--accent); }
+.six-urge[data-state='fire'] .vital-track i { background: #de7a22; }
+.six-impulse .vital-track i { transition: width 60ms linear; }
+/* the classroom: a needle either side of neutral */
+.six-memory .vital-track { overflow: visible; }
+.six-memory .vital-track i { width: 3px; left: calc(var(--v) * 100% - 1px); top: -3px; bottom: -3px; background: var(--ink); }
+.six-memory .vital-track u { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--ink-3); }
+
+.sixslip.win .stamp { color: #de7a22; }
+.sixslip.loss .stamp { color: var(--alarm); }
+.sixslip.open .stamp { color: var(--ink-2); }
+.six-toast { pointer-events: none; }
+
+/* the slips sit low, clear of the score card */
+.venue-six .slip { top: auto; bottom: calc(var(--gutter) + 3.6rem); }
+@media (max-width: 760px) {
+  .venue-six .slip { bottom: 4.2rem; max-width: calc(100% - 1.8rem); min-width: 0; }
+}
+/* on a phone the card keeps the count, the strikes and what he is doing */
+@media (max-width: 560px) {
+  .sixbank { min-width: 0; max-width: 10.5rem; gap: 0.35rem; padding: 0.6rem 0.75rem; }
+  .six-score { gap: 0.6rem; }
+  .six-score b { font-size: 1.4rem; }
+  .sixbank .six-line:nth-of-type(2), .sixbank .six-fresh, .sixbank .history { display: none; }
+  .sixbank .six-line b { font-size: 0.74rem; }
+}
+
+/* the afternoon pools in the middle of the room */
+.venue-six .stage { position: relative; }
+.six-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 80% 75% at 45% 50%, transparent 58%, rgba(70, 45, 20, 0.28) 100%);
+}

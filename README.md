@@ -29,6 +29,7 @@ The site is **Fly Lab**: a hub at `/` with one tile per experiment, all built on
 | `/game/` | **Fruit Fly Gamer**, see [The gamer](#the-gamer) |
 | `/code/` | **Fruit Fly Codes POKYH**, see [The coder](#the-coder) |
 | `/swat/` | **Fruit Fly vs. the Swatter**, see [The swatter](#the-swatter) |
+| `/67/` | **Damian Says Six Seven**, see [Six seven](#six-seven) |
 
 New experiments get a page folder (`<name>/index.html`), an entry in `src/entries/`, a Vite input in `vite.config.js`, a row in `seo/content.js`, and a tile in `index.html`.
 
@@ -189,6 +190,20 @@ The seventh experiment, at `/swat/`. The fly stands on a pub table drinking spil
 - **Both sides learn.** Near misses and hits reach the mushroom body through PPL1, which turns up its looming pathway. Every miss makes the hand swing faster and aim ahead, where flies jump; a hit settles it.
 - **Slow motion.** The end of every swing plays slowed, and the brain is slowed with it, so the outcome is the same as at full speed.
 - **The table** is primitives and canvas textures only: no model to download. `node tools/sim-swat.mjs 8 1` plays eight headless minutes. Typical runs: about a quarter of swings hit, peaks around 1.5 per mille, at most one blackout.
+
+## Six seven
+
+The eighth experiment, at `/67/`. Damian, a fly with a middle parting, sits in a classroom. The teacher, a second fly in glasses, writes on the board, turns to the class, writes the answer, looks round. Nobody controls either of them.
+
+- **The cue.** About half of what goes on the board has a six and a seven in it: page 67, a sum that comes to 67, 6 × 7, "6, 7, 8, what comes next?". A cue drives PAM in proportion to how funny the joke still is and to what the mushroom body has learned. When PAM's rate above rest outruns his restraint, he does it: "six seven", the right foreleg pumping, the body rocking the other way.
+- **Restraint.** The threshold moves with the teacher looking, with every strike against his name, and with PPL1. So he mostly does it behind the teacher's back.
+- **A joke wears out.** Laughter is a reward burst, but freshness drops with every 67 and recovers slowly. A stale joke pulls less, so he sits through more cues, and one said anyway lands in silence (a small PPL1 sting).
+- **Caught.** Every unseen 67 raises the teacher's suspicion, and a suspicious teacher whips round. Far enough into the gesture he drops his palms in time; caught in the first second it is a strike. Three strikes is detention: eight lines of "I will not say six seven in class".
+- **Bored.** With no six or seven for a while, and unwatched, he mutters one unprompted.
+- **The voice.** With the sound on he says it out loud through the browser's speech synthesis (`src/audio/sixSevenVoice.js`). No recording is shipped, and only voices the browser reports as local to the device are used, so nothing leaves the domain. English is preferred; on a device without an English voice, any local voice gets the words spelled so that it lands near "six seven". With no local voice, a two-note chant carries it.
+- `node tools/sim-67.mjs 8 1` plays eight headless minutes.
+
+A fruit fly does not know what sixty-seven is. The cue, the classroom and the idea that laughter is rewarding are the model's; where the dopamine goes once it is released is the connectome's.
 
 ## Run it locally
 

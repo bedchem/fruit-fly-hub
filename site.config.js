@@ -15,7 +15,7 @@ export default {
   tagline: 'Experiments with a real fruit fly brain.',
   description:
     'Experiments with a real fruit fly brain: a CT-scanned fly and 60,000 real neurons from the '
-    + 'MaleCNS connectome, put at a slot machine, at a bar, at a trading desk, in front of two phones, at a gaming setup, at a desk all night and under a fly swatter. It decides everything itself — '
+    + 'MaleCNS connectome, put at a slot machine, at a bar, at a trading desk, in front of two phones, at a gaming setup, at a desk all night, under a fly swatter and in a classroom. It decides everything itself — '
     + 'its stakes, its drinks, when to stop — and its mushroom body learns from what happens.',
   keywords: [
     'fruit fly', 'Drosophila melanogaster', 'connectome', 'MaleCNS', 'FlyEM',
@@ -25,7 +25,8 @@ export default {
     'gaming', 'rage quit', 'League of Legends', 'Minecraft', 'Fortnite', 'CS2',
     'Red Dead Redemption 2', 'God of War', 'optomotor response',
     'caffeine', 'sleep', 'fan-shaped body', 'coding', 'POKYH',
-    'fly swatter', 'escape response', 'looming', 'LPLC2', 'giant fiber', 'three.js', 'WebGL',
+    'fly swatter', 'escape response', 'looming', 'LPLC2', 'giant fiber',
+    'six seven', '67 meme', 'impulse control', 'habituation', 'three.js', 'WebGL',
   ],
   language: 'en',
   locale: 'en_US',
