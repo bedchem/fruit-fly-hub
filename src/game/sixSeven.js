@@ -176,6 +176,17 @@ export class SixSeven {
   setImpulse(urge, dread) { this.urge = urge; this.dread = dread; }
 
   get dopamine() { return this.urge; }
+
+  // What the shared cortisol meter reads (CortisolMeter.jsx): fear, arousal,
+  // a run of bad luck, and whatever this classroom adds on top.
+  get fear() { return this.fly.fear; }
+  get octopamine() { return this.fly.arousal; }
+  /** Every strike on the board counts double. */
+  get lossStreak() { return this.strikes * 2; }
+  /** The teacher's eyes on him, dread, and sitting in detention. */
+  get stressExtra() {
+    return clamp(this.watching * 0.07 + this.dread * 0.12 + (this.phase === PHASES.DETENTION ? 0.25 : 0), 0, 0.45);
+  }
   /** Is the teacher looking at the class? 0..1 as it turns. */
   get watching() {
     const d = Math.abs(wrapAngle(this.teacher.yaw - TEACHER_AT_CLASS));

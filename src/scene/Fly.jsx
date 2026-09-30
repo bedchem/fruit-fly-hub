@@ -87,8 +87,11 @@ export const REST_HAND = HAND;
  * it always has): `body` — { pitch, yaw, roll, rise }, how it sits, leaning in
  * or back; `breath` — { phase, depth }, its breathing, paced by the machine;
  * `headRoll` — the head tilted about the way it looks, radians.
+ *
+ * `background` marks a fly that is not the subject of the shot (a classmate,
+ * the teacher): it is drawn in one pass instead of two.
  */
-export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mouthLocal, pose = FLY, headSlot = null, headPoints = null }) {
+export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mouthLocal, pose = FLY, headSlot = null, headPoints = null, background = false }) {
   const { scene } = useGLTF('/models/fly.glb', '/draco/');
   const groupRef = useRef();
   const headRef = useRef();
@@ -101,23 +104,29 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
     if (!mesh) return { root, mesh: null };
 
     // --- bake the skin weights -------------------------------------------
-    const pos = mesh.geometry.getAttribute('position');
-    const weights = new Float32Array(pos.count * 3);
-    let legCount = 0, headCount = 0;
-    for (let i = 0; i < pos.count; i++) {
-      const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      const [w1, w2] = legWeights(x, y, z);
-      const wh = headWeight(x, y, z);
-      weights[i * 3] = w1;
-      weights[i * 3 + 1] = w2;
-      weights[i * 3 + 2] = wh;
-      if (w1 > 0.01) legCount++;
-      if (wh > 0.01) headCount++;
-    }
-    mesh.geometry.setAttribute('aRigWeight', new THREE.BufferAttribute(weights, 3));
-    if (import.meta.env.DEV) {
-      console.info(`[fly] rigged ${pos.count} vertices: foreleg ${legCount} (${(100 * legCount / pos.count).toFixed(1)}%),`
-        + ` head ${headCount} (${(100 * headCount / pos.count).toFixed(1)}%)`);
+    // Every copy of the fly shares one geometry (the clone above copies
+    // nodes, not buffers), so the weights are baked the first time and found
+    // there by every fly after it: a page with four flies walks the 197,000
+    // vertices once, not four times.
+    if (!mesh.geometry.getAttribute('aRigWeight')) {
+      const pos = mesh.geometry.getAttribute('position');
+      const weights = new Float32Array(pos.count * 3);
+      let legCount = 0, headCount = 0;
+      for (let i = 0; i < pos.count; i++) {
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        const [w1, w2] = legWeights(x, y, z);
+        const wh = headWeight(x, y, z);
+        weights[i * 3] = w1;
+        weights[i * 3 + 1] = w2;
+        weights[i * 3 + 2] = wh;
+        if (w1 > 0.01) legCount++;
+        if (wh > 0.01) headCount++;
+      }
+      mesh.geometry.setAttribute('aRigWeight', new THREE.BufferAttribute(weights, 3));
+      if (import.meta.env.DEV) {
+        console.info(`[fly] rigged ${pos.count} vertices: foreleg ${legCount} (${(100 * legCount / pos.count).toFixed(1)}%),`
+          + ` head ${headCount} (${(100 * headCount / pos.count).toFixed(1)}%)`);
+      }
     }
 
     // The scan's own material is kept: translucent amber, exactly as
@@ -126,6 +135,10 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
     const material = mesh.material.clone();
     material.side = THREE.DoubleSide;
     material.envMapIntensity = 1.0;
+    // A translucent double-sided mesh is drawn twice, back faces then front.
+    // A fly in the background is drawn once: half the triangles, and at that
+    // distance the difference does not show.
+    if (background) material.forceSinglePass = true;
 
     const store = { current: null };
     material.onBeforeCompile = (shader) => {
@@ -150,7 +163,7 @@ export function Fly({ machine, gripTargetRef, dopamineRef, lookRef, mouthRef, mo
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;
     return { root, mesh, store };
-  }, [scene]);
+  }, [scene, background]);
 
   useLayoutEffect(() => { uniforms.current = model.store; }, [model]);
 

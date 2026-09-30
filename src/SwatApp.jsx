@@ -6,6 +6,7 @@ import { Connectome } from './neural/Connectome.jsx';
 import { useConnectome } from './neural/useConnectome.js';
 import { SwatBrain } from './neural/swatBrain.js';
 import { Tooltips } from './ui/Tooltips.jsx';
+import { CortisolMeter } from './ui/CortisolMeter.jsx';
 import {
   SwatBank, EscapeCircuit, Scoreboard, BlowSlip, StunnedCard, OutCard, SwatToast, SwatHowItWorks,
 } from './ui/SwatPanels.jsx';
@@ -131,6 +132,7 @@ export default function SwatApp() {
       <aside className="panel">
         <Connectome machineRef={gameRef} store={cnsStore} ready={cnsReady} />
         <EscapeCircuit gameRef={gameRef} />
+        <CortisolMeter machineRef={gameRef} idPrefix="swat-cortisol" />
         <Scoreboard gameRef={gameRef} />
         <footer className="panel-foot">
           <p className="credits-3d">
