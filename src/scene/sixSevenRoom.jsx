@@ -128,7 +128,7 @@ function Window({ x, yard }) {
   const { y, width, height } = WINDOWS;
   const frame = { color: '#f4efe2', roughness: 0.6 };
   const bar = (w, h, px, py) => (
-    <mesh position={[px, py, 0.03]} castShadow>
+    <mesh position={[px, py, 0.03]}>
       <boxGeometry args={[w, h, 0.06]} />
       <meshStandardMaterial {...frame} />
     </mesh>
@@ -146,7 +146,7 @@ function Window({ x, yard }) {
       {bar(0.045, height, 0, 0)}
       {bar(width, 0.045, 0, 0)}
       {/* the sill */}
-      <mesh position={[0, -height / 2 - 0.08, 0.12]} castShadow receiveShadow>
+      <mesh position={[0, -height / 2 - 0.08, 0.12]} receiveShadow>
         <boxGeometry args={[width + 0.3, 0.05, 0.3]} />
         <meshStandardMaterial {...frame} />
       </mesh>
@@ -164,7 +164,7 @@ function Curtain({ x, width = 0.42 }) {
     return g;
   }, [width]);
   return (
-    <mesh geometry={geom} position={[x, WINDOWS.y + 0.12, WINDOW_WALL_Z - 0.16]} rotation={[0, Math.PI, 0]} castShadow>
+    <mesh geometry={geom} position={[x, WINDOWS.y + 0.12, WINDOW_WALL_Z - 0.16]} rotation={[0, Math.PI, 0]}>
       <meshStandardMaterial color="#d9a441" roughness={0.9} side={THREE.DoubleSide} />
     </mesh>
   );
@@ -230,7 +230,7 @@ function Poster({ kind, w, h, position, rotation = [0, Math.PI / 2, 0], frame = 
   useEffect(() => () => tex.dispose(), [tex]);
   return (
     <group position={position} rotation={rotation}>
-      <mesh castShadow><boxGeometry args={[w + 0.05, h + 0.05, 0.02]} /><meshStandardMaterial color={frame} roughness={0.6} /></mesh>
+      <mesh><boxGeometry args={[w + 0.05, h + 0.05, 0.02]} /><meshStandardMaterial color={frame} roughness={0.6} /></mesh>
       <mesh position={[0, 0, 0.0105]}><planeGeometry args={[w, h]} /><meshStandardMaterial map={tex} roughness={0.85} /></mesh>
     </group>
   );
@@ -247,13 +247,14 @@ const MODELS = {
   clock: '/models/ph-wall-clock.glb',
 };
 
-function Prop({ url, position, rotation = [0, 0, 0], scale = 1 }) {
+/** `shadow`: only props near the pupils cast one; the shadow pass skips the rest. */
+function Prop({ url, position, rotation = [0, 0, 0], scale = 1, shadow = false }) {
   const { scene } = useGLTF(url, '/draco/');
   const root = useMemo(() => {
     const r = scene.clone(true);
-    r.traverse((o) => { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    r.traverse((o) => { if (o.isMesh) { o.castShadow = shadow; o.receiveShadow = true; } });
     return r;
-  }, [scene]);
+  }, [scene, shadow]);
   return <primitive object={root} position={position} rotation={rotation} scale={scale} />;
 }
 
@@ -446,7 +447,7 @@ function TeacherDesk() {
         </mesh>
       ))}
       <Globe position={[0.05, top, -0.45]} />
-      <Prop url={MODELS.lamp} position={[-0.12, top, 0.5]} rotation={[0, 2.2, 0]} scale={0.95} />
+      <Prop url={MODELS.lamp} position={[-0.12, top, 0.5]} rotation={[0, 2.2, 0]} scale={0.95} shadow />
       {/* an apple */}
       <group position={[0.2, top + 0.045, 0.12]}>
         <mesh scale={[1, 0.9, 1]} castShadow><sphereGeometry args={[0.048, 20, 16]} /><meshStandardMaterial color="#c8231d" roughness={0.35} /></mesh>

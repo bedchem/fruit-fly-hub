@@ -12,7 +12,7 @@
  */
 import { Suspense, useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { ContactShadows, AdaptiveDpr, PerspectiveCamera } from '@react-three/drei';
+import { AdaptiveDpr, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { Fly } from './Fly.jsx';
 import { Stool, StudioProbe } from './studio.jsx';
@@ -21,6 +21,7 @@ import {
   BOARD, WALL_X, TEACHER, TEACHER_AT_BOARD, BOARD_GAZE, CLASS_CAMERA, SIX_AT, SEVEN_AT, NOTEBOOK, CLASSMATE_DZ, SUN,
 } from './sixSevenLayout.js';
 import { Room, PupilDesk, DamianThings, SchoolBag } from './sixSevenRoom.jsx';
+import { MiddleParting } from './middleParting.jsx';
 import { PHASES, TEACH, NAME, MAX_STRIKES, DETENTION_LINES, BEAT_HZ } from '../game/sixSeven.js';
 import { sound } from '../audio/audio.js';
 
@@ -98,8 +99,9 @@ function pointerTexture(label) {
 // ------------------------------------------------------------------ the rig
 
 function Rig({ game, lookRef, teacherLookRef, gripTargetRef, dopamineRef, teacherPose, mates, onTick, onReady }) {
-  const { camera } = useThree();
+  const { camera, gl } = useThree();
   const started = useRef(false);
+  const frame = useRef(0);
   const base = useMemo(() => new THREE.Vector3(...CLASS_CAMERA.position), []);
   const look = useMemo(() => new THREE.Vector3(...CLASS_CAMERA.target), []);
   const toDamian = useMemo(() => new THREE.Vector3(...DAMIAN_HEAD).sub(new THREE.Vector3(...CLASS_CAMERA.position)).normalize(), []);
@@ -115,6 +117,11 @@ function Rig({ game, lookRef, teacherLookRef, gripTargetRef, dopamineRef, teache
     const t = state.clock.elapsedTime;
     const T = game.teach;
     const saying = game.phase === PHASES.SIXSEVEN;
+    // Four flies are 1.6 million triangles, and the shadow map draws them all
+    // again. Nothing in this room moves fast, so it is redrawn every third
+    // frame — every other one while he is at it — and nobody can tell.
+    frame.current += 1;
+    if (frame.current < 4 || frame.current % (saying ? 2 : 3) === 0) gl.shadowMap.needsUpdate = true;
     dopamineRef.current = game.urge;
     gripTargetRef.current = game.gripTarget;
     teacherPose.rotationY = game.teacher.yaw;
@@ -171,6 +178,10 @@ function Rig({ game, lookRef, teacherLookRef, gripTargetRef, dopamineRef, teache
       base.z + toDamian.z * p * 0.45 + Math.cos(t * 0.19) * 0.05 + Math.cos(t * 24.1) * k * 0.04,
     );
     camera.lookAt(look);
+    if (import.meta.env.DEV && window.__sixCam) {
+      camera.position.set(...window.__sixCam.position);
+      camera.lookAt(...window.__sixCam.target);
+    }
 
     uiClock.current += dt;
     if (uiClock.current > 1 / 12) { uiClock.current = 0; onTick(); }
@@ -314,10 +325,20 @@ function Blackboard({ game }) {
   }, [canvas]);
   useEffect(() => () => texture.dispose(), [texture]);
   const clock = useRef(1);
+  const painted = useRef('');
   useFrame((_, dt) => {
     clock.current += dt;
     if (clock.current < 1 / 12) return;
     clock.current = 0;
+    // Repaint, and re-upload 1280×608 pixels to the GPU, only when what is on
+    // the board has changed: most of the time the chalk is not moving.
+    const T = game.teach;
+    const chars = Math.ceil(T.item.text.length * T.written);
+    const state = game.phase === PHASES.DETENTION
+      ? `d|${game.lines}|${Math.floor(game.detentionT * 9 % 12)}|${game.strikes}`
+      : `${game.itemCount}|${chars}|${Math.round(T.answered * 40)}|${game.strikes}|${game.day}`;
+    if (state === painted.current) return;
+    painted.current = state;
     paintBoard(canvas.getContext('2d'), game, W, H, smears);
     texture.needsUpdate = true;
   });
@@ -394,54 +415,6 @@ function NumberLine() {
 // ------------------------------------------------------------ on the heads
 // All in the fly's own head space (the head spans x −0.22..0.15, y 0.64..1.09,
 // z 0.54..0.65); Fly.jsx turns whatever is in the head slot with the head.
-
-/**
- * Damian's hair: a middle parting. Two curtains swept out and down from a
- * line over the middle of the head, a lock falling forward past each eye,
- * and the back of the head covered.
- */
-function MiddleParting() {
-  const hair = { color: '#3b2413', roughness: 0.5 };
-  const shine = { color: '#5a3a20', roughness: 0.4 };
-  return (
-    <group position={[-0.039, 0.985, 0.59]}>
-      {/* the back and crown, under the two curtains */}
-      <mesh position={[0, -0.03, -0.05]} scale={[1, 0.62, 0.78]} castShadow>
-        <sphereGeometry args={[0.205, 28, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial {...hair} side={THREE.DoubleSide} />
-      </mesh>
-      {[-1, 1].map((s) => (
-        <group key={s}>
-          {/* a curtain: a dome tipped outwards, so the parting is the valley between the two */}
-          <mesh position={[s * 0.105, 0.005, 0.0]} rotation={[0.12, 0, -s * 0.62]} scale={[0.72, 0.46, 0.92]} castShadow>
-            <sphereGeometry args={[0.2, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-            <meshStandardMaterial {...hair} side={THREE.DoubleSide} />
-          </mesh>
-          {/* the lock that falls forward and down past the eye */}
-          <mesh position={[s * 0.185, -0.075, 0.105]} rotation={[0.55, 0, -s * 0.3]} castShadow>
-            <capsuleGeometry args={[0.05, 0.17, 6, 14]} />
-            <meshStandardMaterial {...hair} />
-          </mesh>
-          {/* a shorter strand from the parting, curving out over the forehead */}
-          <mesh position={[s * 0.095, 0.0, 0.135]} rotation={[0.95, 0, -s * 0.75]} castShadow>
-            <capsuleGeometry args={[0.042, 0.12, 6, 14]} />
-            <meshStandardMaterial {...shine} />
-          </mesh>
-          {/* the tip, flicking out */}
-          <mesh position={[s * 0.225, -0.175, 0.15]} rotation={[0.3, 0, -s * 0.9]}>
-            <capsuleGeometry args={[0.032, 0.05, 6, 12]} />
-            <meshStandardMaterial {...hair} />
-          </mesh>
-        </group>
-      ))}
-      {/* the parting itself: a pale line of scalp down the middle */}
-      <mesh position={[0, 0.088, 0.02]} rotation={[0.1, 0, 0]}>
-        <boxGeometry args={[0.012, 0.012, 0.26]} />
-        <meshStandardMaterial color="#e3a36a" roughness={0.8} />
-      </mesh>
-    </group>
-  );
-}
 
 /** The teacher's glasses: a ring over each eye, a bridge between. */
 function Glasses() {
@@ -673,13 +646,12 @@ function World({ game, onTick, onReady }) {
         <group key={m.dz}>
           <PupilDesk dz={m.dz} />
           <Stool offset={[0, 0, m.dz]} />
-          <Fly machine={m.body} pose={m.pose} lookRef={m.lookRef} headSlot={HEADWEAR[i % HEADWEAR.length]} />
+          <Fly machine={m.body} pose={m.pose} lookRef={m.lookRef} headSlot={HEADWEAR[i % HEADWEAR.length]} background />
         </group>
       ))}
 
-      <Fly machine={game.teacher} pose={teacherPose} lookRef={teacherLookRef} headSlot={<Glasses />} />
+      <Fly machine={game.teacher} pose={teacherPose} lookRef={teacherLookRef} headSlot={<Glasses />} background />
       <Pops game={game} mates={mates} />
-      <ContactShadows position={[0, 0.003, 0]} opacity={0.35} scale={14} blur={2.2} far={4} resolution={1024} color="#3a2a18" />
       <StudioProbe />
     </>
   );
@@ -694,6 +666,9 @@ export function SixSevenScene({ game, onTick, onReady }) {
       onCreated={({ gl, scene }) => {
         gl.toneMapping = THREE.ACESFilmicToneMapping;
         gl.toneMappingExposure = 1.05;
+        gl.shadowMap.autoUpdate = false;
+        gl.shadowMap.needsUpdate = true;
+        if (import.meta.env.DEV) { window.__sixGl = gl; window.__sixScene = scene; }
         scene.background = BG.clone();
         scene.fog = new THREE.Fog(BG.clone(), 12, 26);
       }}

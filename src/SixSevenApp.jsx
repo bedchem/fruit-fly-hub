@@ -7,6 +7,7 @@ import { Connectome } from './neural/Connectome.jsx';
 import { useConnectome } from './neural/useConnectome.js';
 import { SixSevenBrain } from './neural/sixSevenBrain.js';
 import { Tooltips } from './ui/Tooltips.jsx';
+import { CortisolMeter } from './ui/CortisolMeter.jsx';
 import {
   SixSevenBank, OnTheBoard, Impulse, SixSevenScores, ResultSlip, DetentionCard, SixSevenToast, SixSevenHowItWorks,
 } from './ui/SixSevenPanels.jsx';
@@ -134,6 +135,7 @@ export default function SixSevenApp() {
         <Connectome machineRef={gameRef} store={cnsStore} ready={cnsReady} />
         <OnTheBoard gameRef={gameRef} />
         <Impulse gameRef={gameRef} />
+        <CortisolMeter machineRef={gameRef} label={`${NAME}'s cortisol meter`} idPrefix="six-cortisol" />
         <SixSevenScores gameRef={gameRef} />
         <footer className="panel-foot">
           <p className="credits-3d">

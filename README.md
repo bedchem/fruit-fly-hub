@@ -189,6 +189,7 @@ The seventh experiment, at `/swat/`. The fly stands on a pub table drinking spil
 - **Beer.** It drinks through its proboscis, and ethanol acts through the bar's `pharmacology.js`: GABA synapses stronger, acetylcholine and glutamate weaker. The looming pathway is mostly cholinergic, so a drunk fly's giant fibre fires later. The model is applied at 40% here, because at full strength the giant fibre never reaches threshold past about 0.6 per mille. It also sways, walks crooked, lands badly and passes out at about 1.6 per mille.
 - **Both sides learn.** Near misses and hits reach the mushroom body through PPL1, which turns up its looming pathway. Every miss makes the hand swing faster and aim ahead, where flies jump; a hit settles it.
 - **Slow motion.** The end of every swing plays slowed, and the brain is slowed with it, so the outcome is the same as at full speed.
+- **Cortisol meter.** The shared stress gauge reads fear, arousal, blows in a row that landed, the swatter growing in its eyes and lying dazed under it.
 - **The table** is primitives and canvas textures only: no model to download. `node tools/sim-swat.mjs 8 1` plays eight headless minutes. Typical runs: about a quarter of swings hit, peaks around 1.5 per mille, at most one blackout.
 
 ## Six seven
@@ -200,7 +201,10 @@ The eighth experiment, at `/67/`. Damian, a fly with a middle parting, sits in a
 - **A joke wears out.** Laughter is a reward burst, but freshness drops with every 67 and recovers slowly. A stale joke pulls less, so he sits through more cues, and one said anyway lands in silence (a small PPL1 sting).
 - **Caught.** Every unseen 67 raises the teacher's suspicion, and a suspicious teacher whips round. Far enough into the gesture he drops his palms in time; caught in the first second it is a strike. Three strikes is detention: eight lines of "I will not say six seven in class".
 - **Bored.** With no six or seven for a while, and unwatched, he mutters one unprompted.
+- **Four flies, one budget.** Damian, two classmates and the teacher are each the full 197,000-vertex scan. The rig weights are baked once on the geometry they share, the three in the background are drawn in one pass instead of two (`background` on `Fly`), the shadow map is redrawn every third frame, and the board canvas is repainted only when the chalk has moved. At 1280×720 that took the page from about 8.1 million triangles and 1,250 draw calls a frame to about 2.5 million and 350.
+- **His hair** (`src/scene/middleParting.jsx`) is a middle parting built from tapered strands along curves, merged into one geometry.
 - **The voice.** With the sound on he says it out loud through the browser's speech synthesis (`src/audio/sixSevenVoice.js`). No recording is shipped, and only voices the browser reports as local to the device are used, so nothing leaves the domain. English is preferred; on a device without an English voice, any local voice gets the words spelled so that it lands near "six seven". With no local voice, a two-note chant carries it.
+- **Cortisol meter.** The shared stress gauge reads fear, arousal, the strikes on the board, the teacher's eyes, dread and detention.
 - `node tools/sim-67.mjs 8 1` plays eight headless minutes.
 
 A fruit fly does not know what sixty-seven is. The cue, the classroom and the idea that laughter is rewarding are the model's; where the dopamine goes once it is released is the connectome's.

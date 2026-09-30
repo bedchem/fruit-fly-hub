@@ -160,6 +160,7 @@ export class SwatGame {
     this.tapT = 0;
     this.lastMode = null;
     this.lastReaction = null;
+    this.hitStreak = 0;
     this.warned = { tipsy: false, drunk: false };
 
     // the hand
@@ -218,6 +219,17 @@ export class SwatGame {
   get hangover() { return 0; }
   /** Kept for the panel's old name. */
   get hunger() { return this.craving; }
+
+  // What the shared cortisol meter reads (CortisolMeter.jsx): fear, arousal,
+  // a run of bad luck, and whatever this table adds on top.
+  get fear() { return this.fly.fear; }
+  get octopamine() { return this.fly.arousal; }
+  /** Blows in a row that landed. */
+  get lossStreak() { return this.hitStreak * 2; }
+  /** The swatter growing in its eyes, and lying dazed under it. */
+  get stressExtra() {
+    return clamp(this.loom * 0.1 + (this.fly.phase === PHASES.STUNNED ? 0.22 : 0) + this.vigilance * 0.08, 0, 0.45);
+  }
 
   // -------------------------------------------------------------- update
 
@@ -743,6 +755,7 @@ export class SwatGame {
     if (kind === 'hit') {
       s.hits += 1;
       s.streak = 0;
+      this.hitStreak += 1;
       h.skill = Math.max(0, h.skill - 0.12);
       this.pendingTakeoff = null;
       this.air = null;
@@ -761,6 +774,7 @@ export class SwatGame {
       else this.punishPulse = Math.max(this.punishPulse, 0.35);
       s.streak += 1;
       s.bestStreak = Math.max(s.bestStreak, s.streak);
+      this.hitStreak = 0;
       h.skill = Math.min(1, h.skill + 0.05);
     }
     this.lastResult = {
